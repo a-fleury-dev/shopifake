@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.0
+    command: start-dev
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin123
+    ports:
+      - "8090:8080"
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+
+  auth-service:
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
+    depends_on:
+      - keycloak
+    environment:
+      - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/Shopifake
+    ports:
+      - "8081:8081"
+
+volumes:
+  keycloak-data:
+    driver: local
