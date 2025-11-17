@@ -1,28 +1,120 @@
-# Fichiers d'environnement avec secrets
-.env
-.env.local
-.env.production
-
-# Dépendances
-node_modules/
+# ===========================
+# Java / Maven
+# ===========================
 target/
+*.class
 *.jar
 *.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
 
-# IDE
-.vscode/
+# Maven specific
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ===========================
+# IDE Files
+# ===========================
+
+# IntelliJ IDEA
 .idea/
 *.iml
-*.swp
-*.swo
+*.iws
+*.ipr
+out/
+.idea_modules/
 
+# Eclipse
+.metadata
+.classpath
+.project
+.settings/
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+.recommenders
+
+# VS Code
+.vscode/
+*.code-workspace
+.history/
+
+# ===========================
+# OS Files
+# ===========================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ===========================
 # Logs
+# ===========================
 *.log
 logs/
+*.log.*
 
-# OS
-.DS_Store
-Thumbs.db
+# ===========================
+# Docker
+# ===========================
+.dockerignore
 
-# Docker volumes
-postgres_data/
+# ===========================
+# Environment Variables
+# ===========================
+.env
+.env.local
+.env.*.local
+
+# ===========================
+# Build & Dependencies
+# ===========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+build/
+
+# ===========================
+# Testing
+# ===========================
+coverage/
+.nyc_output/
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# ===========================
+# Temporary files
+# ===========================
+*.tmp
+*.temp

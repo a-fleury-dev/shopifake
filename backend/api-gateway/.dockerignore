@@ -1,11 +1,8 @@
 target/
-!target/*.jar
-.mvn/wrapper/maven-wrapper.jar
-.git
-.gitignore
-*.md
-.env
-.env.example
+.mvn/
+mvnw
+mvnw.cmd
+*.iml
+.idea/
+.vscode/
 *.log
-.DS_Store
-node_modules/
