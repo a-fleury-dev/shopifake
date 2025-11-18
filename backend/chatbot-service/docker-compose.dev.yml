@@ -1,33 +1,6 @@
 version: '3.8'
 
 services:
-  keycloak:
-    image: quay.io/keycloak/keycloak:24.0.0
-    command: start-dev
-    environment:
-      - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin123
-    ports:
-      - "8090:8080"
-    volumes:
-      - keycloak-data:/opt/keycloak/data
-    networks:
-      - shopifake-network
-
-  auth-service:
-    build:
-      context: ./backend/auth-service
-      dockerfile: Dockerfile
-    depends_on:
-      - keycloak
-    environment:
-      - KEYCLOAK_URL=http://keycloak:8080
-      - KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/Shopifake
-    ports:
-      - "8081:8081"
-    networks:
-      - shopifake-network
-
   qdrant:
     image: qdrant/qdrant:latest
     container_name: shopifake-qdrant
@@ -48,7 +21,7 @@ services:
 
   chatbot-service:
     build:
-      context: ./backend/chatbot-service
+      context: .
       dockerfile: Dockerfile
     container_name: shopifake-chatbot
     ports:
@@ -58,7 +31,7 @@ services:
       - MISTRAL_API_KEY=${MISTRAL_API_KEY}
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
-      - PRODUCT_SERVICE_URL=http://api-gateway:8080/api/products
+      - PRODUCT_SERVICE_URL=${PRODUCT_SERVICE_URL:-http://api-gateway:8080/api/products}
       - NODE_ENV=production
     depends_on:
       qdrant:
@@ -68,8 +41,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  keycloak-data:
-    driver: local
   qdrant_storage:
 
 
