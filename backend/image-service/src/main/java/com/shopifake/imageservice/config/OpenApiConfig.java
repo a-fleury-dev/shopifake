@@ -14,8 +14,8 @@ public class OpenApiConfig {
     public OpenAPI imageServiceOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Image Service API")
-                        .description("Image management service for Shopifake - MinIO interface")
+                        .title("Shopifake Image Service API")
+                        .description("Image management service for Shopifake - MinIO & PostgreSQL backend")
                         .version("1.0.0")
                         .contact(new Contact()
                                 .name("Shopifake Team")
