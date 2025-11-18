@@ -1,16 +1,673 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap');
 @import 'tailwindcss';
 
-@theme {
-  --font-sans:
-    'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol', 'Noto Color Emoji';
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 14px;
+  /* The default background color for the application. */
+  --background: rgba(243, 244, 245, 1);
+  /* The default color for elements or text that appears on top of the background. */
+  --foreground: rgba(44, 51, 62, 1);
+  /* The background color for cards, modals, and other containers. */
+  --card: rgba(255, 255, 255, 1);
+  /* The default color for text or elements that appear on top of cards, modals and other background containers. */
+  --card-foreground: rgba(44, 51, 62, 1);
+  /* The background color for dropdowns and tooltips. */
+  --popover: rgba(243, 244, 245, 1);
+  /* The default color for text or elements that appear on top of dropdowns and tooltips. */
+  --popover-foreground: rgba(44, 51, 62, 1);
+  /* The primary color used for buttons, links, and other interactive elements. */
+  --primary: rgba(150, 191, 72, 1);
+  /* The default color for text or elements that appear on top of primary colored elements. */
+  --primary-foreground: rgba(255, 255, 255, 1);
+  /* The secondary color used for secondary(but NOT-DESTRUCTIVE) buttons and interactive elements. */
+  --secondary: rgba(226, 227, 229, 1);
+  /* The default color for text or elements that appear on top of secondary colored elements. */
+  --secondary-foreground: rgba(63, 70, 80, 1);
+  /* The muted color used for less prominent elements, such as disabled buttons or disabled text. */
+  --muted: rgba(242, 243, 244, 1);
+  /* The default color for text or elements that appear on top of muted colored elements. */
+  --muted-foreground: rgba(100, 110, 120, 1);
+  /* Enhanced muted foreground for better readability */
+  --muted-foreground-enhanced: rgba(120, 130, 140, 1);
+  /* The accent color used for highlights, links, and other interactive elements. */
+  --accent: rgba(150, 191, 72, 1);
+  /* The default color for text or elements that appear on top of accent colored elements. */
+  --accent-foreground: rgba(255, 255, 255, 1);
+  /* The color used for background in destructive actions, such as delete buttons or error messages. */
+  --destructive: rgba(243, 91, 91, 1);
+  /* The default color for text or elements that appear on top of destructive colored elements. */
+  --destructive-foreground: rgba(255, 255, 255, 1);
+  /* The default border color for elements such as inputs, buttons, and other containers. */
+  --border: rgba(44, 51, 62, 0.12);
+  /* The default background color for input fields once the text has been filled. Should be either transparent or match the input-background. */
+  --input: rgba(255, 255, 255, 1);
+  /* The default background color for input fields, text areas, and other input elements. */
+  --input-background: rgba(255, 255, 255, 1);
+  /* The default font weight for medium text. */
+  --font-weight-medium: 500;
+  /* The default font weight for normal text. */
+  --font-weight-normal: 400;
+  /* The default font weight for semibold text. */
+  --font-weight-semibold: 600;
+  /* The default font weight for bold text. */
+  --font-weight-bold: 700;
+  /* The default font weight for extrabold text. */
+  --font-weight-extrabold: 800;
+  /* The color for focus rings, outlines, and other focus indicators. */
+  --ring: rgba(150, 191, 72, 1);
+  /* Shadow for small elevations, such as cards or modals. */
+  --elevation-sm: 0px 0px 20px 0px rgba(0, 0, 0, 0.12);
+  /* The color for chart elements, such as a bar or line in a chart. */
+  --chart-1: rgba(150, 191, 72, 1);
+  /* The color for another chart element, such as a bar or line in a chart. */
+  --chart-2: rgba(104, 117, 233, 1);
+  /* The color for another chart element, such as a bar or line in a chart. */
+  --chart-3: rgba(16, 184, 83, 1);
+  /* The color for another chart element, such as a bar or line in a chart. */
+  --chart-4: rgba(243, 91, 91, 1);
+  /* The color for another chart element, such as a bar or line in a chart. */
+  --chart-5: rgba(255, 153, 0, 1);
+  /* The default border radius for elements such as buttons, tooltip, and other containers. */
+  --radius: 16px;
+  /* Button-specific border radius. */
+  --radius-button: 12px;
+  /* Card-specific border radius. */
+  --radius-card: 16px;
+  /* Input-specific border radius. */
+  --radius-input: 10px;
+  /* Typography scale variables - Enhanced for bigger headlines */
+  --text-7xl: 80px;
+  --text-6xl: 64px;
+  --text-5xl: 48px;
+  --text-4xl: 36px;
+  --text-3xl: 30px;
+  --text-2xl: 24px;
+  --text-xl: 20px;
+  --text-lg: 18px;
+  --text-base: 16px;
+  --text-sm: 14px;
+  /* Mobile typography scale */
+  --text-7xl-mobile: 48px;
+  --text-6xl-mobile: 40px;
+  --text-5xl-mobile: 32px;
+  --text-4xl-mobile: 28px;
+  --text-3xl-mobile: 24px;
+  --text-2xl-mobile: 20px;
+  --text-xl-mobile: 18px;
+  /* The background color for sidebars, navigation menus, and other persistent elements. */
+  --sidebar: rgba(255, 255, 255, 1);
+  /* The default color for text or elements that appear on top of sidebars, navigation menus, and other persistent elements. */
+  --sidebar-foreground: rgba(44, 51, 62, 1);
+  /* The primary color used for buttons, links, and other interactive elements in sidebars and navigation menus. */
+  --sidebar-primary: rgba(150, 191, 72, 1);
+  /* The default color for text or elements that appear on top of primary colored elements in sidebars and navigation menus. */
+  --sidebar-primary-foreground: rgba(255, 255, 255, 1);
+  /* The accent color used for highlights, links, and other interactive elements in sidebars and navigation menus. */
+  --sidebar-accent: rgba(150, 191, 72, 1);
+  /* The default color for text or elements that appear on top of accent colored elements in sidebars and navigation menus. */
+  --sidebar-accent-foreground: rgba(255, 255, 255, 1);
+  /* The default border color for elements in sidebars and navigation menus. */
+  --sidebar-border: rgba(44, 51, 62, 0.12);
+  /* The default color for focus rings, outlines, and other focus indicators in sidebars and navigation menus. */
+  --sidebar-ring: rgba(150, 191, 72, 1);
+
+  /* Liquid Glass Variables */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  --glass-shadow-hover: 0 12px 48px 0 rgba(31, 38, 135, 0.5);
+  --glass-blur: blur(20px);
+  --glass-blur-strong: blur(50px);
+  --liquid-gradient-1: linear-gradient(
+    135deg,
+    rgba(150, 191, 72, 0.3) 0%,
+    rgba(93, 157, 22, 0.3) 100%
+  );
+  --liquid-gradient-2: linear-gradient(
+    135deg,
+    rgba(16, 184, 83, 0.3) 0%,
+    rgba(150, 191, 72, 0.3) 100%
+  );
+  --liquid-gradient-3: linear-gradient(
+    135deg,
+    rgba(243, 91, 91, 0.3) 0%,
+    rgba(255, 153, 0, 0.3) 100%
+  );
+
+  /* Custom colors for feature blocks */
+  --purple: rgba(139, 92, 246, 1);
+  --sea: rgba(6, 182, 212, 1);
 }
 
-html,
-body {
-  @apply bg-white dark:bg-gray-950;
+.dark {
+  /* Much darker background colors for dark theme */
+  --background: rgba(8, 8, 11, 1);
+  --foreground: rgba(250, 250, 250, 1);
+  --card: rgba(15, 15, 19, 1);
+  --card-foreground: rgba(250, 250, 250, 1);
+  --popover: rgba(8, 8, 11, 1);
+  --popover-foreground: rgba(250, 250, 250, 1);
+  /* Updated accent color for dark mode */
+  --primary: rgba(93, 157, 22, 1);
+  --primary-foreground: rgba(255, 255, 255, 1);
+  --secondary: rgba(24, 24, 27, 1);
+  --secondary-foreground: rgba(250, 250, 250, 1);
+  --muted: rgba(24, 24, 27, 1);
+  --muted-foreground: rgba(180, 185, 190, 1);
+  /* Enhanced muted foreground for dark mode - much lighter for better readability */
+  --muted-foreground-enhanced: rgba(200, 205, 210, 1);
+  --accent: rgba(93, 157, 22, 1);
+  --accent-foreground: rgba(255, 255, 255, 1);
+  --destructive: rgba(243, 91, 91, 1);
+  --destructive-foreground: rgba(255, 255, 255, 1);
+  --border: rgba(39, 39, 42, 1);
+  --input: rgba(24, 24, 27, 1);
+  --input-background: rgba(24, 24, 27, 1);
+  --ring: rgba(93, 157, 22, 1);
+  --chart-1: rgba(93, 157, 22, 1);
+  --chart-2: rgba(104, 117, 233, 1);
+  --chart-3: rgba(16, 184, 83, 1);
+  --chart-4: rgba(243, 91, 91, 1);
+  --chart-5: rgba(255, 153, 0, 1);
+  --sidebar: rgba(15, 15, 19, 1);
+  --sidebar-foreground: rgba(250, 250, 250, 1);
+  --sidebar-primary: rgba(93, 157, 22, 1);
+  --sidebar-primary-foreground: rgba(255, 255, 255, 1);
+  --sidebar-accent: rgba(93, 157, 22, 1);
+  --sidebar-accent-foreground: rgba(255, 255, 255, 1);
+  --sidebar-border: rgba(39, 39, 42, 1);
+  --sidebar-ring: rgba(93, 157, 22, 1);
 
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
+  /* Dark mode glass variables - much darker */
+  --glass-bg: rgba(0, 0, 0, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+  --glass-shadow-hover: 0 12px 48px 0 rgba(0, 0, 0, 0.9);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted-foreground-enhanced: var(--muted-foreground-enhanced);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: var(--radius-input);
+  --radius-lg: var(--radius-button);
+  --radius-xl: var(--radius);
+  --radius-2xl: var(--radius-card);
+  --shadow-sm: var(--elevation-sm);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-purple: var(--purple);
+  --color-sea: var(--sea);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
+
+  /* Remove green border/ring on button hover when not focused */
+  button:hover:not(:focus-visible),
+  [data-slot='button']:hover:not(:focus-visible) {
+    outline: none !important;
+  }
+
+  /* Prevent Tailwind ring utilities from applying on hover */
+  button:hover:not(:focus-visible) *,
+  [data-slot='button']:hover:not(:focus-visible) * {
+    --tw-ring-offset-shadow: 0 0 #0000 !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Nunito Sans', sans-serif;
+    background:
+      radial-gradient(ellipse at top, rgba(150, 191, 72, 0.05) 0%, transparent 70%),
+      radial-gradient(ellipse at bottom right, rgba(93, 157, 22, 0.05) 0%, transparent 70%),
+      var(--background);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Hide scrollbars but keep scrolling functionality */
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+
+  *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+}
+
+/* Liquid Glass Effects */
+.liquid-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  animation: float 20s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.liquid-blob-1 {
+  width: 400px;
+  height: 400px;
+  background: var(--liquid-gradient-1);
+  top: -200px;
+  left: -200px;
+  animation-delay: 0s;
+}
+
+.liquid-blob-2 {
+  width: 300px;
+  height: 300px;
+  background: var(--liquid-gradient-2);
+  top: 50%;
+  right: -150px;
+  animation-delay: -10s;
+}
+
+.liquid-blob-3 {
+  width: 500px;
+  height: 500px;
+  background: var(--liquid-gradient-3);
+  bottom: -250px;
+  left: 50%;
+  animation-delay: -5s;
+}
+
+/* Enhanced liquid card with improved blur effects */
+.liquid-card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-card);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.liquid-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.dark .liquid-card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.dark .liquid-card:hover {
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* Disable hover effects for large container components */
+.liquid-card.no-hover:hover,
+.ios-surface.no-hover:hover {
+  transform: none !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.dark .liquid-card.no-hover:hover,
+.dark .ios-surface.no-hover:hover {
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.liquid-button {
+  background: linear-gradient(145deg, rgba(150, 191, 72, 0.8) 0%, rgba(93, 157, 22, 0.8) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 4px 20px rgba(150, 191, 72, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.dark .liquid-button {
+  background: linear-gradient(145deg, rgba(93, 157, 22, 0.8) 0%, rgba(150, 191, 72, 0.8) 100%);
+  box-shadow:
+    0 4px 20px rgba(93, 157, 22, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.liquid-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.8s;
+}
+
+.liquid-button:hover::before {
+  left: 100%;
+}
+
+.liquid-button:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow:
+    0 8px 30px rgba(0, 136, 204, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.dark .liquid-button:hover {
+  box-shadow:
+    0 8px 30px rgba(70, 156, 236, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.liquid-glow {
+  position: relative;
+}
+
+.liquid-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  padding: 2px;
+  background: linear-gradient(
+    45deg,
+    rgba(150, 191, 72, 0.4),
+    rgba(93, 157, 22, 0.4),
+    rgba(16, 184, 83, 0.4)
+  );
+  border-radius: inherit;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: xor;
+  -webkit-mask-composite: xor;
+  filter: blur(1px);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.liquid-glow:hover::before {
+  opacity: 1;
+}
+
+.ios-surface {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.18);
+  border-radius: 20px;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.dark .ios-surface {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.25),
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.glass-transparent {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.15);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-strong-transparent {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: var(--glass-blur-strong);
+  -webkit-backdrop-filter: var(--glass-blur-strong);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+}
+
+.dark .glass-transparent {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.4);
+}
+
+.dark .glass-strong-transparent {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+}
+
+.iridescent-text-enhanced {
+  background: linear-gradient(
+    45deg,
+    #0088cc,
+    #00bcd4,
+    #26a69a,
+    #1976d2,
+    #2196f3,
+    #3f51b5,
+    #673ab7,
+    #8e24aa,
+    #673ab7,
+    #3f51b5,
+    #2196f3,
+    #1976d2,
+    #26a69a,
+    #00bcd4,
+    #0088cc
+  );
+  background-size: 600% 600%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: iridescent-enhanced 8s ease-in-out infinite;
+  font-size: var(--text-7xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.1;
+}
+
+@media (max-width: 768px) {
+  .iridescent-text-enhanced {
+    font-size: var(--text-7xl-mobile);
+  }
+}
+
+@keyframes iridescent-enhanced {
+  0% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg) saturate(1.1);
+  }
+  20% {
+    background-position: 25% 50%;
+    filter: hue-rotate(15deg) saturate(1.2);
+  }
+  40% {
+    background-position: 50% 50%;
+    filter: hue-rotate(25deg) saturate(1.3);
+  }
+  60% {
+    background-position: 75% 50%;
+    filter: hue-rotate(35deg) saturate(1.2);
+  }
+  80% {
+    background-position: 100% 50%;
+    filter: hue-rotate(20deg) saturate(1.1);
+  }
+  100% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg) saturate(1.1);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-30px) rotate(120deg);
+  }
+  66% {
+    transform: translateY(20px) rotate(240deg);
+  }
+}
+
+h1 {
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: var(--text-6xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.1;
+}
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: var(--text-6xl-mobile);
+  }
+}
+
+h2 {
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: var(--text-5xl);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+}
+
+@media (max-width: 768px) {
+  h2 {
+    font-size: var(--text-5xl-mobile);
+  }
+}
+
+h3 {
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: var(--text-3xl);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+}
+
+@media (max-width: 768px) {
+  h3 {
+    font-size: var(--text-3xl-mobile);
+  }
+}
+
+/* Enhanced gray text styling */
+.text-muted-foreground-enhanced {
+  color: var(--muted-foreground-enhanced);
+}
+
+/* Gradient backgrounds */
+.blue-gradient {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.9) 0%,
+    rgba(37, 99, 235, 0.8) 35%,
+    rgba(29, 78, 216, 0.7) 70%,
+    rgba(30, 64, 175, 0.6) 100%
+  );
+  box-shadow:
+    0 4px 20px rgba(59, 130, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.green-gradient {
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.9) 0%,
+    rgba(22, 163, 74, 0.8) 35%,
+    rgba(21, 128, 61, 0.7) 70%,
+    rgba(20, 83, 45, 0.6) 100%
+  );
+  box-shadow:
+    0 4px 20px rgba(34, 197, 94, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.red-gradient {
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.9) 0%,
+    rgba(220, 38, 38, 0.8) 35%,
+    rgba(185, 28, 28, 0.7) 70%,
+    rgba(153, 27, 27, 0.6) 100%
+  );
+  box-shadow:
+    0 4px 20px rgba(239, 68, 68, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.purple-gradient {
+  background: linear-gradient(
+    135deg,
+    rgba(147, 51, 234, 0.9) 0%,
+    rgba(126, 34, 206, 0.8) 35%,
+    rgba(107, 33, 168, 0.7) 70%,
+    rgba(88, 28, 135, 0.6) 100%
+  );
+  box-shadow:
+    0 4px 20px rgba(147, 51, 234, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
 }
