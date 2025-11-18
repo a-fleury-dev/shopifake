@@ -8,7 +8,14 @@ import prettierConfig from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    ignores: ['build/**', 'dist/**', '.react-router/**', 'node_modules/**', 'public/**'],
+    ignores: [
+      'build/**',
+      'dist/**',
+      '.react-router/**',
+      'node_modules/**',
+      'public/**',
+      'app/to_be_integrated/**',
+    ],
   },
 
   js.configs.recommended,
@@ -55,5 +62,19 @@ export default tseslint.config(
       ],
     },
   },
+
+  // Relax rules for dashboard and module files (still in development)
+  {
+    files: [
+      'app/components/dashboard/**/*.{ts,tsx}',
+      'app/components/*Module.tsx',
+      'app/components/ui/*.tsx',
+    ],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
+
   prettierConfig,
 );
