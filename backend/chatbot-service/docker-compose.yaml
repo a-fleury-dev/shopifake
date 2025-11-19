@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_ORIGINS=*
+    restart: unless-stopped
+
+  chatbot-api:
+    build: ./chatbot-api
+    container_name: chatbot-api
+    depends_on:
+      - ollama
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    ports:
+      - "8080:8080"
+
+volumes:
+  ollama-data:
