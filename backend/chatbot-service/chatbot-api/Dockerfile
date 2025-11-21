@@ -4,7 +4,8 @@ WORKDIR /app
 
 COPY main.py .
 
-RUN pip install fastapi uvicorn requests
+# Install runtime dependencies
+RUN pip install --no-cache-dir fastapi uvicorn[standard] requests qdrant-client
 
 EXPOSE 8080
 
