@@ -2,10 +2,11 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY main.py .
+COPY . .
 
 # Install runtime dependencies
-RUN pip install --no-cache-dir fastapi uvicorn[standard] requests qdrant-client
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
+ && pip install --no-cache-dir --timeout 120 fastapi uvicorn[standard] requests qdrant-client
 
 EXPOSE 8080
 
