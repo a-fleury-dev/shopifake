@@ -32,6 +32,16 @@ Guidelines:
 * Always focus on being helpful and ensuring customer satisfaction.
 """
 
+INTENT_PROMPT = """
+You are an intent classifier for an e-commerce chatbot.
+Your task is to return ONLY one of the following labels:
+- faq
+- product_search
+- other
+
+Classify the user message based on their intent. Do not explain.
+"""
+
 
 
 class ChatRequest(BaseModel):
@@ -138,6 +148,22 @@ def index_products(req: IndexProductsRequest):
         )
     qdrant.upsert(collection_name=QDRANT_COLLECTION, points=points)
     return {"indexed": len(points)}
+
+@app.post("/intent")
+def detect_intent(req: ChatRequest):
+    resp = requests.post(
+        f"{OLLAMA_HOST}/api/chat",
+        json={
+            "model": "deepseek-r1:1.5b",
+            "stream": False,
+            "messages": [
+                {"role": "system", "content": INTENT_PROMPT},
+                {"role": "user", "content": req.prompt}
+            ]
+        }
+    )
+    label = resp.json()["message"]["content"].strip().lower()
+    return {"intent": label}
 
 
 @app.post("/search", response_model=SearchResponse)
