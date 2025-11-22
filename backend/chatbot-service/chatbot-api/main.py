@@ -5,6 +5,7 @@ from app.routes.products import router as products_router
 from app.routes.search import router as search_router
 from app.routes.chat import router as chat_router
 from app.routes.intent import router as intent_router
+from app.routes.assist import router as assist_router
 
 
 app = FastAPI()
@@ -15,4 +16,5 @@ app.include_router(products_router)
 app.include_router(search_router)
 app.include_router(chat_router)
 app.include_router(intent_router)
+app.include_router(assist_router)
 

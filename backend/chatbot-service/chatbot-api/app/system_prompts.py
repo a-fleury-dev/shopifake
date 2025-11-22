@@ -15,10 +15,12 @@ Guidelines:
 
 INTENT_PROMPT = """
 You are an intent classifier for an e-commerce chatbot.
-Your task is to return ONLY one of the following labels:
+Classify the user's message into exactly ONE of these labels:
 - faq
 - product_search
 - other
 
-Classify the user message based on their intent. Do not explain.
+Output must be STRICT JSON with this schema and nothing else:
+{"intent":"faq|product_search|other"}
+No explanations. No extra keys. No trailing text.
 """
