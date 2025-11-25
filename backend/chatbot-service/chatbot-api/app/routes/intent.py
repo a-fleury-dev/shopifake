@@ -1,7 +1,5 @@
 from fastapi import APIRouter
 import requests
-import json
-import re
 from ..models import ChatRequest
 from ..system_prompts import INTENT_PROMPT
 from ..config import OLLAMA_HOST

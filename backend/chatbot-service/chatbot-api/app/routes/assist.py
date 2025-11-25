@@ -2,8 +2,6 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List
 import requests
-import json
-import re
 
 from ..models import SearchResult
 from ..vectorstore import query_similar
