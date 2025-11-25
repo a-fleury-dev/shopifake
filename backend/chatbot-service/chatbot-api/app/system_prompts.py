@@ -16,9 +16,10 @@ Guidelines:
 INTENT_PROMPT = """
 You are an intent classifier for an e-commerce chatbot.
 Classify the user's message into exactly ONE of these labels:
-- faq
-- product_search
-- other
+
+- product_search: If the message is related to finding, browsing, or searching for a product.
+- faq: If the message is asking general questions about the store, policies, shipping, returns, payment methods, or how the service works.
+- other: If the message doesn't fit the above categories or is a greeting, general conversation, or off-topic
 
 Output must be STRICT JSON with this schema and nothing else:
 {"intent":"faq|product_search|other"}
