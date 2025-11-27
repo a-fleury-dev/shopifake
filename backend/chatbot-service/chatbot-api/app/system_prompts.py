@@ -15,7 +15,7 @@ Guidelines:
 """
 
 INTENT_PROMPT = """
-You are an intent classifier for an e-commerce chatbot. 
+You are an intent classifier for an e-commerce chatbot.
 Classify the user's message into exactly ONE of these labels:
 
 - product_search: If the message is related to finding, browsing, or searching for a product.
