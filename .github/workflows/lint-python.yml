@@ -38,6 +38,11 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f ../requirements.txt ]; then pip install -r ../requirements.txt; fi
 
+      - name: Install mypy type stubs
+        run: |
+          pip install types-requests types-ujson
+        continue-on-error: true
+
       - name: Run Ruff (linting and formatting check)
         run: |
           # Ruff check (linting - replaces flake8, isort, and more)
