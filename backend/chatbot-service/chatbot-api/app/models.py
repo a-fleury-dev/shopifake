@@ -17,6 +17,7 @@ class Product(BaseModel):
     tags: Optional[List[str]] = None
     price: Optional[float] = None
     category: Optional[str] = None
+    image_url: Optional[str] = None
 
 
 class IndexProductsRequest(BaseModel):
