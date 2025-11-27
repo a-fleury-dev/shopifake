@@ -110,6 +110,27 @@
                     <mainClass>com.shopifake.gateway.ApiGatewayApplication</mainClass>
                 </configuration>
             </plugin>
+            <!-- JaCoCo plugin to enable jacoco:report and prepare-agent goals used by CI/workflows -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.10</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>
