@@ -1,9 +1,10 @@
 """
 Test configuration and fixtures for chatbot-api tests
 """
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 import sys
 import os
 
@@ -30,15 +31,17 @@ def mock_ollama_chat():
 def mock_vectorstore():
     """Mock vector store operations"""
     # Patch where the functions are USED, not where they're defined
-    with patch("app.routes.search.query_similar") as mock_query_search, \
-         patch("app.routes.products.upsert_products") as mock_upsert_products, \
-         patch("app.routes.assist.query_similar") as mock_query_assist, \
-         patch("app.vectorstore.ensure_collection") as mock_ensure:
+    with (
+        patch("app.routes.search.query_similar") as mock_query_search,
+        patch("app.routes.products.upsert_products") as mock_upsert_products,
+        patch("app.routes.assist.query_similar") as mock_query_assist,
+        patch("app.vectorstore.ensure_collection") as mock_ensure,
+    ):
         yield {
             "query_similar": mock_query_search,  # For search endpoint
             "query_similar_assist": mock_query_assist,  # For assist endpoint
             "upsert_products": mock_upsert_products,
-            "ensure_collection": mock_ensure
+            "ensure_collection": mock_ensure,
         }
 
 
@@ -61,11 +64,11 @@ def mock_qdrant():
         mock_client.get_collections.return_value = mock_collections
         mock_client.recreate_collection.return_value = None
         mock_client.upsert.return_value = None
-        
+
         # Mock search/query_points methods
         mock_client.search.return_value = []
         mock_client.query_points.return_value = Mock(points=[])
-        
+
         yield mock_client
 
 
@@ -79,7 +82,7 @@ def sample_products():
             "description": "Comfortable organic cotton t-shirt in various colors",
             "tags": ["cotton", "organic", "t-shirt"],
             "price": 29.99,
-            "category": "Clothing"
+            "category": "Clothing",
         },
         {
             "id": "prod-002",
@@ -87,7 +90,7 @@ def sample_products():
             "description": "Lightweight running shoes with cushioned sole",
             "tags": ["shoes", "running", "sports"],
             "price": 89.99,
-            "category": "Footwear"
+            "category": "Footwear",
         },
         {
             "id": "prod-003",
@@ -95,8 +98,8 @@ def sample_products():
             "description": "Warm fleece hoodie perfect for cold weather",
             "tags": ["hoodie", "winter", "fleece"],
             "price": 49.99,
-            "category": "Clothing"
-        }
+            "category": "Clothing",
+        },
     ]
 
 
@@ -108,12 +111,12 @@ def sample_search_results():
             "id": "prod-001",
             "score": 0.92,
             "title": "Organic Cotton T-Shirt",
-            "snippet": "Comfortable organic cotton t-shirt in various colors"
+            "snippet": "Comfortable organic cotton t-shirt in various colors",
         },
         {
             "id": "prod-003",
             "score": 0.78,
             "title": "Winter Hoodie",
-            "snippet": "Warm fleece hoodie perfect for cold weather"
-        }
+            "snippet": "Warm fleece hoodie perfect for cold weather",
+        },
     ]

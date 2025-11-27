@@ -19,4 +19,3 @@ app.include_router(chat_router)
 app.include_router(intent_router)
 app.include_router(assist_router)
 app.include_router(webhook_router)
-
