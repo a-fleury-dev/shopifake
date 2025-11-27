@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chatbot-config
+  namespace: chatbot-test
+data:
+  OLLAMA_HOST: "http://ollama-service:11434"
+  OLLAMA_EMBED_MODEL: "nomic-embed-text"
+  QDRANT_URL: "http://qdrant-service:6333"
+  QDRANT_COLLECTION: "products"

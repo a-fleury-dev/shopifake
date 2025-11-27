@@ -95,6 +95,14 @@ logs/
 .env.*.local
 
 # ===========================
+# Kubernetes Config (SENSIBLE)
+# ===========================
+.kube/
+*.kubeconfig
+kubeconfig
+kubeconfig.*
+
+# ===========================
 # Build & Dependencies
 # ===========================
 node_modules/
