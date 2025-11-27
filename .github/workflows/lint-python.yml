@@ -45,9 +45,9 @@ jobs:
 
       - name: Run Ruff (linting and formatting check)
         run: |
-          # Ruff check (linting - replaces flake8, isort, and more)
+          # Ruff check
           ruff check .
-          # Ruff format check (replaces black)
+          # Ruff format check 
           ruff format --check .
 
       - name: Run mypy (type checking)

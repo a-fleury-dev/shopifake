@@ -180,6 +180,7 @@ def test_assist_search_failure_graceful_degradation(
     assert data["results"] == []
     assert "response" in data
 
+
 def test_assist_custom_top_k(client, mock_ollama_chat, mock_vectorstore):
     """Test assist with custom top_k parameter"""
     # Mock intent detection
