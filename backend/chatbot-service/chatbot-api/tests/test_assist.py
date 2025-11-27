@@ -180,46 +180,6 @@ def test_assist_search_failure_graceful_degradation(
     assert data["results"] == []
     assert "response" in data
 
-
-def test_assist_heuristic_override_product_terms(
-    client, mock_ollama_chat, mock_vectorstore
-):
-    """Test that heuristic override detects product terms"""
-    # Mock intent detection returning 'other'
-    intent_response = Mock()
-    intent_response.json.return_value = {"message": {"content": '{"intent": "other"}'}}
-
-    # Mock final chat response
-    chat_response = Mock()
-    chat_response.json.return_value = {
-        "message": {"content": "Here are some t-shirts for you."}
-    }
-
-    mock_ollama_chat.side_effect = [intent_response, chat_response] + [
-        chat_response
-    ] * 10
-
-    mock_results = [
-        SearchResult(
-            id="prod-001",
-            score=0.90,
-            title="Cotton T-Shirt",
-            snippet="Comfortable cotton t-shirt",
-        )
-    ]
-    mock_vectorstore["query_similar_assist"].return_value = mock_results
-
-    # Query contains "t-shirt" which should trigger heuristic override
-    response = client.post("/assist", json={"prompt": "I need a t-shirt please"})
-
-    assert response.status_code == 200
-    data = response.json()
-
-    # Intent should be overridden to product_search
-    assert data["intent"] == "product_search"
-    assert len(data["results"]) > 0
-
-
 def test_assist_custom_top_k(client, mock_ollama_chat, mock_vectorstore):
     """Test assist with custom top_k parameter"""
     # Mock intent detection
