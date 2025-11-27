@@ -52,6 +52,7 @@ local.properties
 .vscode/
 *.code-workspace
 .history/
+.venv
 
 # ===========================
 # OS Files
