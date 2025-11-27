@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - staging
       - main
       - 'feature/**'
     paths:
@@ -15,6 +16,7 @@ on:
   pull_request:
     branches:
       - develop
+      - staging
       - main
     paths:
       - 'backend/api-gateway/**'
