@@ -1,0 +1,100 @@
+name: Chatbot Service - CI Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+      - staging
+      - main
+      - 'feature/**'
+    paths:
+      - 'backend/chatbot-service/chatbot-api/**'
+      - '.github/workflows/chatbot-service-ci.yml'
+      - '.github/workflows/lint.yml'
+      - '.github/workflows/tetst.yml'
+      - '.github/workflows/build.yml'
+  pull_request:
+    branches:
+      - develop
+      - staging
+      - main
+    paths:
+      - 'backend/chatbot-service/chatbot-api/**'
+
+# Permissions required by the reusable `build.yml` workflow
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+    with:
+      service-path: backend/api-gateway
+
+  tests:
+    uses: ./.github/workflows/tetst.yml
+    needs: lint
+    with:
+      service-path: backend/chatbot-service/chatbot-api
+
+  build:
+    uses: ./.github/workflows/build.yml
+    needs: tests
+    with:
+      service-path: backend/chatbot-service/chatbot-api
+      service-name: chatbot-service
+
+  deploy-staging:
+    name: Deploy to Kubernetes (Staging)
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/staging'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+      
+      - name: Configure kubectl
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+      
+      - name: Verify cluster connection
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+      
+      - name: Deploy to Kubernetes
+        run: |
+          # Apply manifests
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/ollama.yaml
+          kubectl apply -f k8s/qdrant.yaml
+          kubectl apply -f k8s/chatbot-api.yaml
+          
+          # Wait for rollout
+          kubectl rollout status deployment/chatbot-api -n chatbot-staging --timeout=5m
+          kubectl rollout status deployment/ollama -n chatbot-staging --timeout=5m
+          kubectl rollout status deployment/qdrant -n chatbot-staging --timeout=5m
+      
+      - name: Get service endpoints
+        run: |
+          echo "=== Deployed Services ==="
+          kubectl get services -n chatbot-staging
+          echo ""
+          echo "=== Pods Status ==="
+          kubectl get pods -n chatbot-staging
+      
+      - name: Deployment summary
+        run: |
+          echo "✅ Deployment completed successfully to staging environment"
+          echo "Namespace: chatbot-staging"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
