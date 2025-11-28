@@ -22,9 +22,10 @@ def client():
 
 @pytest.fixture
 def mock_ollama_chat():
-    """Mock Ollama chat API responses"""
-    with patch("requests.post") as mock_post:
-        yield mock_post
+    """Mock LLM chat responses (kept fixture name for backward compatibility)."""
+    # Patch the new abstraction used by routes
+    with patch("app.llm.chat_complete") as mock_chat:
+        yield mock_chat
 
 
 @pytest.fixture
