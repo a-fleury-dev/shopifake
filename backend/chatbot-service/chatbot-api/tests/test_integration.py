@@ -2,8 +2,6 @@
 Integration tests for complete chatbot workflows
 """
 
-from unittest.mock import Mock
-
 
 class TestCompleteWorkflows:
     """Test complete end-to-end workflows"""
@@ -66,17 +64,8 @@ class TestCompleteWorkflows:
         assert len(search_data["results"]) > 0
 
         # Step 3: Use assist endpoint for conversational search
-        intent_mock = Mock()
-        intent_mock.json.return_value = {
-            "message": {"content": '{"intent": "product_search"}'}
-        }
-
-        chat_mock = Mock()
-        chat_mock.json.return_value = {
-            "message": {
-                "content": "I found the Organic Cotton T-Shirt for you. It's eco-friendly and costs $29.99."
-            }
-        }
+        intent_mock = '{"intent": "product_search"}'
+        chat_mock = "I found the Organic Cotton T-Shirt for you. It's eco-friendly and costs $29.99."
 
         mock_results = [
             SearchResult(
@@ -86,7 +75,6 @@ class TestCompleteWorkflows:
                 snippet="Eco-friendly organic cotton t-shirt. Price: $29.99",
             )
         ]
-
         mock_ollama_chat.side_effect = [intent_mock, chat_mock] + [chat_mock] * 10
         mock_vectorstore["query_similar_assist"].return_value = mock_results
 
@@ -111,16 +99,8 @@ class TestCompleteWorkflows:
 
         for scenario in scenarios:
             # Mock intent detection
-            intent_mock = Mock()
-            intent_mock.json.return_value = {
-                "message": {"content": f'{{"intent": "{scenario["expected_intent"]}"}}'}
-            }
-
-            # Mock chat response
-            chat_mock = Mock()
-            chat_mock.json.return_value = {
-                "message": {"content": "Here's the information you requested."}
-            }
+            intent_mock = f'{{"intent": "{scenario["expected_intent"]}"}}'
+            chat_mock = "Here's the information you requested."
 
             mock_ollama_chat.side_effect = [intent_mock, chat_mock] + [chat_mock] * 10
 
@@ -161,13 +141,8 @@ class TestCompleteWorkflows:
         # Pre-build all mock responses for all queries
         all_responses = []
         for query in queries:
-            intent_mock = Mock()
-            intent_mock.json.return_value = {
-                "message": {"content": f'{{"intent": "{query["expected_intent"]}"}}'}
-            }
-
-            chat_mock = Mock()
-            chat_mock.json.return_value = {"message": {"content": "Response"}}
+            intent_mock = f'{{"intent": "{query["expected_intent"]}"}}'
+            chat_mock = "Response"
 
             all_responses.extend([intent_mock, chat_mock])
 
@@ -225,15 +200,9 @@ class TestEdgeCases:
         """Test handling of unicode and special characters"""
         from app.models import SearchResult
 
-        # Mock intent
-        intent_mock = Mock()
-        intent_mock.json.return_value = {
-            "message": {"content": '{"intent": "product_search"}'}
-        }
-
-        # Mock chat
-        chat_mock = Mock()
-        chat_mock.json.return_value = {"message": {"content": "Voici les produits."}}
+        # Mock intent and chat
+        intent_mock = '{"intent": "product_search"}'
+        chat_mock = "Voici les produits."
 
         mock_ollama_chat.side_effect = [intent_mock, chat_mock] + [chat_mock] * 10
 
@@ -258,13 +227,8 @@ class TestEdgeCases:
 
         for prompt in prompts:
             # Mock responses
-            intent_mock = Mock()
-            intent_mock.json.return_value = {
-                "message": {"content": '{"intent": "other"}'}
-            }
-
-            chat_mock = Mock()
-            chat_mock.json.return_value = {"message": {"content": "Response"}}
+            intent_mock = '{"intent": "other"}'
+            chat_mock = "Response"
 
             mock_ollama_chat.side_effect = [intent_mock, chat_mock] + [chat_mock] * 10
 
@@ -301,9 +265,7 @@ class TestErrorHandling:
 
     def test_ollama_service_unavailable(self, client, mock_ollama_chat):
         """Test handling when Ollama service is unavailable"""
-        mock_response = Mock()
-        mock_response.side_effect = Exception("Service unavailable")
-        mock_ollama_chat.return_value = mock_response
+        mock_ollama_chat.side_effect = Exception("Service unavailable")
 
         # This will raise an exception, which is expected behavior
         try:

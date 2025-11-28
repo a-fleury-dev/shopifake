@@ -2,16 +2,10 @@
 Tests for chat endpoint
 """
 
-from unittest.mock import Mock
-
 
 def test_chat_basic_query(client, mock_ollama_chat):
     """Test basic chat functionality"""
-    mock_response = Mock()
-    mock_response.json.return_value = {
-        "message": {"content": "Hello! How can I help you today?"}
-    }
-    mock_ollama_chat.return_value = mock_response
+    mock_ollama_chat.return_value = "Hello! How can I help you today?"
 
     response = client.post("/chat", json={"prompt": "Hello"})
 
@@ -23,13 +17,9 @@ def test_chat_basic_query(client, mock_ollama_chat):
 
 def test_chat_product_question(client, mock_ollama_chat):
     """Test chat with product-related question"""
-    mock_response = Mock()
-    mock_response.json.return_value = {
-        "message": {
-            "content": "I can help you find t-shirts. What style are you looking for?"
-        }
-    }
-    mock_ollama_chat.return_value = mock_response
+    mock_ollama_chat.return_value = (
+        "I can help you find t-shirts. What style are you looking for?"
+    )
 
     response = client.post("/chat", json={"prompt": "Do you have t-shirts?"})
 
@@ -41,9 +31,7 @@ def test_chat_product_question(client, mock_ollama_chat):
 
 def test_chat_empty_response_from_ollama(client, mock_ollama_chat):
     """Test chat when Ollama returns empty response"""
-    mock_response = Mock()
-    mock_response.json.return_value = {"message": {"content": ""}}
-    mock_ollama_chat.return_value = mock_response
+    mock_ollama_chat.return_value = ""
 
     response = client.post("/chat", json={"prompt": "Test prompt"})
 
@@ -61,11 +49,7 @@ def test_chat_missing_prompt(client):
 
 def test_chat_with_long_prompt(client, mock_ollama_chat):
     """Test chat with very long prompt"""
-    mock_response = Mock()
-    mock_response.json.return_value = {
-        "message": {"content": "I understand your detailed question."}
-    }
-    mock_ollama_chat.return_value = mock_response
+    mock_ollama_chat.return_value = "I understand your detailed question."
 
     long_prompt = "Tell me about " + "organic cotton t-shirts " * 50
     response = client.post("/chat", json={"prompt": long_prompt})
@@ -75,9 +59,7 @@ def test_chat_with_long_prompt(client, mock_ollama_chat):
 
 def test_chat_with_special_characters(client, mock_ollama_chat):
     """Test chat with special characters in prompt"""
-    mock_response = Mock()
-    mock_response.json.return_value = {"message": {"content": "I can help with that."}}
-    mock_ollama_chat.return_value = mock_response
+    mock_ollama_chat.return_value = "I can help with that."
 
     response = client.post(
         "/chat", json={"prompt": "Do you have 100% cotton & organic t-shirts?"}
@@ -88,9 +70,8 @@ def test_chat_with_special_characters(client, mock_ollama_chat):
 
 def test_chat_malformed_ollama_response(client, mock_ollama_chat):
     """Test chat handling of malformed Ollama response"""
-    mock_response = Mock()
-    mock_response.json.return_value = {}  # Missing message key
-    mock_ollama_chat.return_value = mock_response
+    # If underlying returns None or malformed, our wrapper returns empty string
+    mock_ollama_chat.return_value = ""
 
     response = client.post("/chat", json={"prompt": "Hello"})
 
@@ -101,21 +82,15 @@ def test_chat_malformed_ollama_response(client, mock_ollama_chat):
 
 def test_chat_uses_correct_model_and_system_prompt(client, mock_ollama_chat):
     """Test that chat uses correct model and system prompt"""
-    mock_response = Mock()
-    mock_response.json.return_value = {"message": {"content": "Response"}}
-    mock_ollama_chat.return_value = mock_response
+    mock_ollama_chat.return_value = "Response"
 
     response = client.post("/chat", json={"prompt": "Test"})
 
     assert response.status_code == 200
 
-    # Verify the Ollama API was called with correct parameters
-    call_args = mock_ollama_chat.call_args
-    json_data = call_args[1]["json"]
-
-    assert json_data["model"] == "deepseek-r1:1.5b"
-    assert json_data["stream"] is False
-    assert len(json_data["messages"]) == 2
-    assert json_data["messages"][0]["role"] == "system"
-    assert json_data["messages"][1]["role"] == "user"
-    assert json_data["messages"][1]["content"] == "Test"
+    # Verify our abstraction was called with correct parameters
+    _, kwargs = mock_ollama_chat.call_args
+    assert kwargs["json_mode"] is False
+    assert kwargs["temperature"] == 0.7
+    assert isinstance(kwargs["system_prompt"], str) and len(kwargs["system_prompt"]) > 0
+    assert kwargs["user_prompt"] == "Test"

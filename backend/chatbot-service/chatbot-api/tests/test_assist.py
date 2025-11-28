@@ -2,27 +2,16 @@
 Tests for assist endpoint - the main chatbot interface
 """
 
-from unittest.mock import Mock
 from app.models import SearchResult
 
 
 def test_assist_product_search_with_results(client, mock_ollama_chat, mock_vectorstore):
     """Test assist endpoint with product search intent and results"""
-    # Mock intent detection
-    intent_response = Mock()
-    intent_response.json.return_value = {
-        "message": {"content": '{"intent": "product_search"}'}
-    }
+    # Mock intent detection and final chat response
+    intent_response = '{"intent": "product_search"}'
+    chat_response = "I found these cotton t-shirts for you: Organic Cotton T-Shirt and Classic Cotton Tee."
 
-    # Mock final chat response
-    chat_response = Mock()
-    chat_response.json.return_value = {
-        "message": {
-            "content": "I found these cotton t-shirts for you: Organic Cotton T-Shirt and Classic Cotton Tee."
-        }
-    }
-
-    # Use side_effect with infinite list to prevent StopIteration
+    # Use side_effect with extra repeats to prevent StopIteration
     mock_ollama_chat.side_effect = [intent_response, chat_response] + [
         chat_response
     ] * 10
@@ -61,17 +50,9 @@ def test_assist_product_search_with_results(client, mock_ollama_chat, mock_vecto
 
 def test_assist_faq_no_search(client, mock_ollama_chat, mock_vectorstore):
     """Test assist endpoint with FAQ intent - should not perform search"""
-    # Mock intent detection
-    intent_response = Mock()
-    intent_response.json.return_value = {"message": {"content": '{"intent": "faq"}'}}
-
-    # Mock final chat response
-    chat_response = Mock()
-    chat_response.json.return_value = {
-        "message": {
-            "content": "Our return policy allows returns within 30 days of purchase."
-        }
-    }
+    # Mock intent detection and final chat response
+    intent_response = '{"intent": "faq"}'
+    chat_response = "Our return policy allows returns within 30 days of purchase."
 
     mock_ollama_chat.side_effect = [intent_response, chat_response] + [
         chat_response
@@ -92,15 +73,9 @@ def test_assist_faq_no_search(client, mock_ollama_chat, mock_vectorstore):
 
 def test_assist_other_intent(client, mock_ollama_chat):
     """Test assist endpoint with 'other' intent"""
-    # Mock intent detection
-    intent_response = Mock()
-    intent_response.json.return_value = {"message": {"content": '{"intent": "other"}'}}
-
-    # Mock final chat response
-    chat_response = Mock()
-    chat_response.json.return_value = {
-        "message": {"content": "Hello! How can I help you today?"}
-    }
+    # Mock intent detection and final chat response
+    intent_response = '{"intent": "other"}'
+    chat_response = "Hello! How can I help you today?"
 
     mock_ollama_chat.side_effect = [intent_response, chat_response] + [
         chat_response
@@ -117,19 +92,9 @@ def test_assist_other_intent(client, mock_ollama_chat):
 
 def test_assist_product_search_no_results(client, mock_ollama_chat, mock_vectorstore):
     """Test assist with product search but no matching products"""
-    # Mock intent detection
-    intent_response = Mock()
-    intent_response.json.return_value = {
-        "message": {"content": '{"intent": "product_search"}'}
-    }
-
-    # Mock final chat response
-    chat_response = Mock()
-    chat_response.json.return_value = {
-        "message": {
-            "content": "I'm sorry, I couldn't find any products matching your search."
-        }
-    }
+    # Mock intent detection and final chat response
+    intent_response = '{"intent": "product_search"}'
+    chat_response = "I'm sorry, I couldn't find any products matching your search."
 
     mock_ollama_chat.side_effect = [intent_response, chat_response] + [
         chat_response
@@ -149,19 +114,9 @@ def test_assist_search_failure_graceful_degradation(
     client, mock_ollama_chat, mock_vectorstore
 ):
     """Test assist handles search failures gracefully"""
-    # Mock intent detection
-    intent_response = Mock()
-    intent_response.json.return_value = {
-        "message": {"content": '{"intent": "product_search"}'}
-    }
-
-    # Mock final chat response
-    chat_response = Mock()
-    chat_response.json.return_value = {
-        "message": {
-            "content": "I'm having trouble accessing the product database right now."
-        }
-    }
+    # Mock intent detection and final chat response
+    intent_response = '{"intent": "product_search"}'
+    chat_response = "I'm having trouble accessing the product database right now."
 
     mock_ollama_chat.side_effect = [intent_response, chat_response] + [
         chat_response
@@ -183,15 +138,9 @@ def test_assist_search_failure_graceful_degradation(
 
 def test_assist_custom_top_k(client, mock_ollama_chat, mock_vectorstore):
     """Test assist with custom top_k parameter"""
-    # Mock intent detection
-    intent_response = Mock()
-    intent_response.json.return_value = {
-        "message": {"content": '{"intent": "product_search"}'}
-    }
-
-    # Mock final chat response
-    chat_response = Mock()
-    chat_response.json.return_value = {"message": {"content": "Here are the products."}}
+    # Mock intent detection and final chat response
+    intent_response = '{"intent": "product_search"}'
+    chat_response = "Here are the products."
 
     mock_ollama_chat.side_effect = [intent_response, chat_response] + [
         chat_response
@@ -208,13 +157,9 @@ def test_assist_custom_top_k(client, mock_ollama_chat, mock_vectorstore):
 
 def test_assist_default_top_k(client, mock_ollama_chat):
     """Test assist uses default top_k of 5"""
-    # Mock intent detection
-    intent_response = Mock()
-    intent_response.json.return_value = {"message": {"content": '{"intent": "faq"}'}}
-
-    # Mock final chat response
-    chat_response = Mock()
-    chat_response.json.return_value = {"message": {"content": "Response"}}
+    # Mock intent detection and final chat response
+    intent_response = '{"intent": "faq"}'
+    chat_response = "Response"
 
     mock_ollama_chat.side_effect = [intent_response, chat_response] + [
         chat_response
@@ -229,17 +174,9 @@ def test_assist_context_injection_for_products(
     client, mock_ollama_chat, mock_vectorstore
 ):
     """Test that product context is injected into system prompt"""
-    # Mock intent detection
-    intent_response = Mock()
-    intent_response.json.return_value = {
-        "message": {"content": '{"intent": "product_search"}'}
-    }
-
-    # Mock final chat response
-    chat_response = Mock()
-    chat_response.json.return_value = {
-        "message": {"content": "Check out these products."}
-    }
+    # Mock intent detection and final chat response
+    intent_response = '{"intent": "product_search"}'
+    chat_response = "Check out these products."
 
     mock_ollama_chat.side_effect = [intent_response, chat_response] + [
         chat_response
@@ -258,7 +195,7 @@ def test_assist_context_injection_for_products(
 
     # Verify the second call (final chat) includes context in system message
     final_call = mock_ollama_chat.call_args_list[1]
-    system_content = final_call[1]["json"]["messages"][0]["content"]
+    system_content = final_call[1]["system_prompt"]
 
     assert "Context:" in system_content
     assert "Test Product" in system_content
@@ -273,13 +210,9 @@ def test_assist_missing_prompt(client):
 
 def test_assist_long_prompt(client, mock_ollama_chat):
     """Test assist with very long prompt"""
-    # Mock intent detection
-    intent_response = Mock()
-    intent_response.json.return_value = {"message": {"content": '{"intent": "other"}'}}
-
-    # Mock final chat response
-    chat_response = Mock()
-    chat_response.json.return_value = {"message": {"content": "I understand."}}
+    # Mock intent detection and final chat response
+    intent_response = '{"intent": "other"}'
+    chat_response = "I understand."
 
     mock_ollama_chat.side_effect = [intent_response, chat_response] + [
         chat_response
@@ -294,13 +227,9 @@ def test_assist_long_prompt(client, mock_ollama_chat):
 
 def test_assist_response_structure(client, mock_ollama_chat):
     """Test that assist response has correct structure"""
-    # Mock intent detection
-    intent_response = Mock()
-    intent_response.json.return_value = {"message": {"content": '{"intent": "other"}'}}
-
-    # Mock final chat response
-    chat_response = Mock()
-    chat_response.json.return_value = {"message": {"content": "Response"}}
+    # Mock intent detection and final chat response
+    intent_response = '{"intent": "other"}'
+    chat_response = "Response"
 
     mock_ollama_chat.side_effect = [intent_response, chat_response] + [
         chat_response

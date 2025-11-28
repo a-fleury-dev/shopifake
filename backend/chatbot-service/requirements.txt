@@ -5,3 +5,5 @@ scikit-learn>=1.5.1
 joblib>=1.4.2
 requests>=2.32.0
 qdrant-client>=1.7.0
+openai>=1.52.0
+openai>=1.55.0
