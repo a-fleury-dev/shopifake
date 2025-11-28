@@ -6,7 +6,7 @@ COPY . .
 
 # Install runtime dependencies
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
- && pip install --no-cache-dir --timeout 120 fastapi uvicorn[standard] requests qdrant-client
+ && pip install --no-cache-dir --timeout 120 fastapi uvicorn[standard] requests qdrant-client openai
 
 EXPOSE 8080
 

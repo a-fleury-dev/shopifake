@@ -1,0 +1,67 @@
+name: Python Tests Workflow
+
+on:
+  workflow_call:
+    inputs:
+      service-path:
+        description: 'Path to the Python service to test (e.g., backend/chatbot-service/chatbot-api)'
+        required: true
+        type: string
+      python-version:
+        description: 'Python version to use'
+        required: false
+        type: string
+        default: '3.11'
+
+jobs:
+  tests-python:
+    name: Run Unit & Integration Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.service-path }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov pytest-asyncio httpx
+          if [ -f ../requirements.txt ]; then pip install -r ../requirements.txt; fi
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run pytest with coverage
+        run: |
+          pytest --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports-python
+          path: |
+            ${{ inputs.service-path }}/htmlcov/
+            ${{ inputs.service-path }}/coverage.xml
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-python
+          path: |
+            ${{ inputs.service-path }}/.pytest_cache/
+
+      - name: Test summary
+        if: always()
+        run: |
+          echo "✅ Python tests completed"
+          echo "Service: ${{ inputs.service-path }}"
+          echo "Python version: ${{ inputs.python-version }}"

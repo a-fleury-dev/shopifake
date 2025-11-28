@@ -156,7 +156,7 @@ pytest tests/test_integration.py::TestCompleteWorkflows::test_full_product_disco
 
 The tests use mocks for external services:
 
-1. **Ollama API** - Mocked with `mock_ollama_chat` fixture
+1. **LLM API (OpenAI)** - Mocked via `mock_ollama_chat` fixture which patches the internal `app.llm.chat_complete` helper
 2. **Qdrant Vector DB** - Mocked with `mock_vectorstore` fixture
 3. **Embeddings** - Mocked with `mock_embeddings` fixture
 

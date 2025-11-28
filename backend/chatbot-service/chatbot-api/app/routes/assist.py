@@ -1,12 +1,11 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List
-import requests
 
 from ..models import SearchResult
 from ..vectorstore import query_similar
 from ..system_prompts import SYSTEM_PROMPT, INTENT_PROMPT
-from ..config import OLLAMA_HOST
+from ..llm import chat_complete
 
 
 router = APIRouter()
@@ -24,21 +23,12 @@ class AssistResponse(BaseModel):
 
 
 def detect_intent(prompt: str) -> str:
-    resp = requests.post(
-        f"{OLLAMA_HOST}/api/chat",
-        json={
-            "model": "deepseek-r1:1.5b",
-            "stream": False,
-            "format": "json",
-            "options": {"temperature": 0},
-            "messages": [
-                {"role": "system", "content": INTENT_PROMPT},
-                {"role": "user", "content": prompt},
-            ],
-        },
-        timeout=60,
-    )
-    raw = resp.json().get("message", {}).get("content", "").strip()
+    raw = chat_complete(
+        system_prompt=INTENT_PROMPT,
+        user_prompt=prompt,
+        json_mode=True,
+        temperature=0.0,
+    ).strip()
 
     if "product_search" in raw.lower():
         label = "product_search"
@@ -122,19 +112,11 @@ def assist(req: AssistRequest):
             "Keep it brief and welcoming."
         )
 
-    resp = requests.post(
-        f"{OLLAMA_HOST}/api/chat",
-        json={
-            "model": "deepseek-r1:1.5b",
-            "stream": False,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": req.prompt},
-            ],
-        },
-        timeout=120,
+    answer = chat_complete(
+        system_prompt=system,
+        user_prompt=req.prompt,
+        json_mode=False,
+        temperature=0.7,
     )
-    data = resp.json()
-    answer = data.get("message", {}).get("content", "")
 
     return AssistResponse(response=answer, results=results, intent=intent)
