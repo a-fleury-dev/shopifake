@@ -7,6 +7,11 @@ on:
     branches:
       - staging
       - main
+  push:
+    branches:
+      - staging
+    paths:
+      - '.github/workflows/chatbot-service-cd.yml'
   workflow_dispatch:
     inputs:
       environment:
