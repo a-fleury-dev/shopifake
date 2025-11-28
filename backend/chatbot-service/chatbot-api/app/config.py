@@ -1,6 +1,6 @@
 import os
 
-# OpenAI configuration (used instead of Ollama)
+# OpenAI configuration
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5-nano")
 OPENAI_EMBED_MODEL = os.getenv("OPENAI_EMBED_MODEL", "text-embedding-3-small")

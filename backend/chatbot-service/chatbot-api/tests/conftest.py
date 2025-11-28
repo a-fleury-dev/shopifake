@@ -21,14 +21,6 @@ def client():
 
 
 @pytest.fixture
-def mock_ollama_chat():
-    """Mock LLM chat responses (kept fixture name for backward compatibility)."""
-    # Patch the new abstraction used by routes
-    with patch("app.llm.chat_complete") as mock_chat:
-        yield mock_chat
-
-
-@pytest.fixture
 def mock_vectorstore():
     """Mock vector store operations"""
     # Patch where the functions are USED, not where they're defined

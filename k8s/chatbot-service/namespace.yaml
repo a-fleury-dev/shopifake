@@ -1,7 +1,15 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: chatbot-test
+  name: chatbot-staging
   labels:
-    environment: test
+    environment: staging
+    app: chatbot-service
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chatbot-prod
+  labels:
+    environment: production
     app: chatbot-service
