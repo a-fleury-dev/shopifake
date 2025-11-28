@@ -63,7 +63,7 @@ jobs:
       - name: Configure kubectl
         run: |
           mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
+          echo "${{ secrets.KUBECONFIG_V2 }}" > $HOME/.kube/config
           chmod 600 $HOME/.kube/config
       
       - name: Verify cluster connection
