@@ -1,0 +1,113 @@
+name: Chatbot Service - CD Pipeline
+
+on:
+  workflow_run:
+    workflows: ["Chatbot Service - CI Pipeline"]
+    types: [completed]
+    branches:
+      - staging
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment (staging|production)"
+        required: true
+        default: "staging"
+      image_tag:
+        description: "Image tag to deploy (optional)"
+        required: false
+
+permissions:
+  contents: read
+
+# Prevent overlapping deploys to the same environment
+concurrency:
+  group: chatbot-service-${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.event.workflow_run.head_branch == 'main' && 'production' || 'staging') }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    name: Deploy Chatbot Service to Kubernetes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # For workflow_run, deploy the exact commit that passed CI
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure kubectl
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 --decode > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Determine namespace
+        id: ns
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            env_input="${{ inputs.environment }}"
+            if [ "$env_input" = "production" ] || [ "$env_input" = "prod" ]; then
+              echo "NAMESPACE=chatbot-prod" >> $GITHUB_ENV
+            else
+              echo "NAMESPACE=chatbot-staging" >> $GITHUB_ENV
+            fi
+          else
+            branch="${{ github.event.workflow_run.head_branch }}"
+            if [ "$branch" = "main" ]; then
+              echo "NAMESPACE=chatbot-prod" >> $GITHUB_ENV
+            else
+              echo "NAMESPACE=chatbot-staging" >> $GITHUB_ENV
+            fi
+          fi
+          echo "Namespace: $NAMESPACE"
+
+      - name: Verify cluster connection
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Apply Kubernetes manifests
+        run: |
+          # Apply namespace (cluster-scoped)
+          kubectl apply -f k8s/chatbot-service/namespace.yaml
+
+          # Apply service deployments in the target namespace
+          kubectl -n $NAMESPACE apply -f k8s/chatbot-service/configmap.yaml
+          kubectl -n $NAMESPACE apply -f k8s/chatbot-service/qdrant-deployment.yaml
+          kubectl -n $NAMESPACE apply -f k8s/chatbot-service/chatbot-api-deployment.yaml
+
+      - name: Wait for rollouts
+        run: |
+          kubectl rollout status deployment/chatbot-api -n $NAMESPACE --timeout=5m
+          kubectl rollout status deployment/qdrant -n $NAMESPACE --timeout=5m
+
+      - name: Print service endpoints and pods
+        run: |
+          echo "=== Services ($NAMESPACE) ==="
+          kubectl get services -n $NAMESPACE
+          echo
+          echo "=== Pods ($NAMESPACE) ==="
+          kubectl get pods -n $NAMESPACE
+
+      - name: Deployment summary
+        run: |
+          echo "✅ Deployment completed"
+          echo "Namespace: $NAMESPACE"
+          echo "Trigger: ${{ github.event_name }}"
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "Source branch: ${{ github.event.workflow_run.head_branch }}"
+            echo "Commit: ${{ github.event.workflow_run.head_sha }}"
+          else
+            echo "Ref: ${{ github.ref }}"
+            echo "Commit: ${{ github.sha }}"
+          fi
