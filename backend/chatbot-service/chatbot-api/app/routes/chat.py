@@ -1,25 +1,17 @@
 from fastapi import APIRouter
-import requests
 from ..models import ChatRequest, ChatResponse
 from ..system_prompts import SYSTEM_PROMPT
-from ..config import OLLAMA_HOST
+from ..llm import chat_complete
 
 router = APIRouter()
 
 
 @router.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
-    resp = requests.post(
-        f"{OLLAMA_HOST}/api/chat",
-        json={
-            "model": "deepseek-r1:1.5b",
-            "stream": False,
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": request.prompt},
-            ],
-        },
+    answer = chat_complete(
+        system_prompt=SYSTEM_PROMPT,
+        user_prompt=request.prompt,
+        json_mode=False,
+        temperature=0.7,
     )
-    data = resp.json()
-    answer = data.get("message", {}).get("content", "")
     return ChatResponse(response=answer)

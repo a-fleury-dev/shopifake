@@ -10,9 +10,9 @@ on:
     paths:
       - 'backend/chatbot-service/chatbot-api/**'
       - '.github/workflows/chatbot-service-ci.yml'
-      - '.github/workflows/lint.yml'
-      - '.github/workflows/tetst.yml'
-      - '.github/workflows/build.yml'
+      - '.github/workflows/lint-python.yml'
+      - '.github/workflows/test-python.yml'
+      - '.github/workflows/build-python.yml'
   pull_request:
     branches:
       - develop
@@ -21,25 +21,27 @@ on:
     paths:
       - 'backend/chatbot-service/chatbot-api/**'
 
-# Permissions required by the reusable `build.yml` workflow
+# Permissions required by the reusable `build-python.yml` workflow
 permissions:
   contents: read
   packages: write
 
 jobs:
   lint:
-    uses: ./.github/workflows/lint.yml
+    uses: ./.github/workflows/lint-python.yml
     with:
-      service-path: backend/api-gateway
+      service-path: backend/chatbot-service/chatbot-api
+      python-version: '3.11'
 
   tests:
-    uses: ./.github/workflows/tetst.yml
+    uses: ./.github/workflows/test-python.yml
     needs: lint
     with:
       service-path: backend/chatbot-service/chatbot-api
+      python-version: '3.11'
 
   build:
-    uses: ./.github/workflows/build.yml
+    uses: ./.github/workflows/build-python.yml
     needs: tests
     with:
       service-path: backend/chatbot-service/chatbot-api
