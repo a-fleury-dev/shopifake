@@ -1,17 +1,20 @@
-import type { Route } from './+types/dashboard';
 import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router';
+import { Navigate, useParams, useNavigate } from 'react-router';
 import { Dashboard } from '../components/Dashboard';
+import { getShopById } from '../lib/shops/shopService';
+import type { Shop } from '../lib/shops/types';
 import { useTheme } from '../contexts/ThemeContext';
 
-export function meta({}: Route.MetaArgs) {
+export function meta() {
   return [
-    { title: 'Dashboard - shopifake' },
+    { title: 'Shop Dashboard - shopifake' },
     { name: 'description', content: 'Manage your online store' },
   ];
 }
 
-export default function DashboardRoute() {
+export default function ShopDashboardRoute() {
+  const { shopId } = useParams();
+  const navigate = useNavigate();
   const { theme, setTheme, language } = useTheme();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [currentUser, setCurrentUser] = useState<{
@@ -19,6 +22,7 @@ export default function DashboardRoute() {
     name: string;
     role: 'admin' | 'manager';
   } | null>(null);
+  const [currentShop, setCurrentShop] = useState<Shop | null>(null);
 
   // Check authentication on mount
   useEffect(() => {
@@ -26,15 +30,19 @@ export default function DashboardRoute() {
     const authTime = localStorage.getItem('shopifake_auth_time');
 
     if (user && authTime) {
-      // Check if auth is still valid (10 minutes = 600000 ms)
       const authDate = parseInt(authTime);
       const now = Date.now();
 
       if (now - authDate < 600000) {
         setCurrentUser(JSON.parse(user));
         setIsAuthenticated(true);
+        
+        // Find the shop
+        const shop = getShopById(shopId!);
+        if (shop) {
+          setCurrentShop(shop);
+        }
       } else {
-        // Auth expired
         localStorage.removeItem('shopifake_user');
         localStorage.removeItem('shopifake_auth_time');
         setIsAuthenticated(false);
@@ -42,13 +50,17 @@ export default function DashboardRoute() {
     } else {
       setIsAuthenticated(false);
     }
-  }, []);
+  }, [shopId]);
 
   const handleLogout = () => {
     localStorage.removeItem('shopifake_user');
     localStorage.removeItem('shopifake_auth_time');
     setIsAuthenticated(false);
     window.location.href = '/';
+  };
+
+  const handleBackToShops = () => {
+    navigate('/shops');
   };
 
   // Show loading state while checking auth
@@ -68,6 +80,11 @@ export default function DashboardRoute() {
     return <Navigate to="/auth" replace />;
   }
 
+  // Redirect to shops if shop not found
+  if (!currentShop) {
+    return <Navigate to="/shops" replace />;
+  }
+
   return (
     <Dashboard
       language={language}
@@ -75,6 +92,8 @@ export default function DashboardRoute() {
       setTheme={setTheme}
       currentUser={currentUser}
       onLogout={handleLogout}
+      currentShop={currentShop}
+      onBackToShops={handleBackToShops}
     />
   );
 }

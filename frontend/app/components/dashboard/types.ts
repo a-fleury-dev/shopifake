@@ -1,4 +1,5 @@
 // Dashboard types and interfaces
+import type { Shop } from '../../lib/shops/types';
 
 export interface CurrentUser {
   email: string;
@@ -12,6 +13,8 @@ export interface DashboardProps {
   setTheme: (theme: 'light' | 'dark') => void;
   currentUser: CurrentUser;
   onLogout: () => void;
+  currentShop?: Shop;
+  onBackToShops?: () => void;
 }
 
 export interface Product {

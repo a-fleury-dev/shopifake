@@ -17,7 +17,15 @@ import { translations } from '../lib/translations';
 // Auto logout after 10 minutes of inactivity
 const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
 
-export function Dashboard({ language, theme, setTheme, currentUser, onLogout }: DashboardProps) {
+export function Dashboard({ 
+  language, 
+  theme, 
+  setTheme, 
+  currentUser, 
+  onLogout, 
+  currentShop,
+  onBackToShops 
+}: DashboardProps) {
   const [activeCategory, setActiveCategory] = useState<CategoryType>('audit');
   const [activeTab, setActiveTab] = useState('audit-sales');
 
@@ -172,6 +180,8 @@ export function Dashboard({ language, theme, setTheme, currentUser, onLogout }: 
           onTabChange={setActiveTab}
           onLogout={onLogout}
           translations={dt}
+          currentShop={currentShop}
+          onBackToShops={onBackToShops}
         />
 
         {/* Main Content */}
