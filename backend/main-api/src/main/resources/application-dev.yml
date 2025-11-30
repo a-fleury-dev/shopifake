@@ -1,9 +1,9 @@
 spring:
   application:
-    name: image-service
+    name: main-api
 
   datasource:
-    url: jdbc:postgresql://localhost:5555/image_service
+    url: jdbc:postgresql://localhost:5432/main_api
     username: user
     password: pwd
     driver-class-name: org.postgresql.Driver
@@ -12,8 +12,10 @@ spring:
     enabled: true
     baseline-on-migrate: true
     clean-disabled: false
-    locations: classpath:db/migration
+    locations: classpath:db/migration,classpath:db/dev
     default-schema: public
+    validate-on-migrate: false
+    out-of-order: true
 
   jpa:
     hibernate:
@@ -24,21 +26,9 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
-
   cloud:
     config:
       enabled: false
-
-minio:
-  endpoint: http://localhost:9000
-  access-key: minioadmin
-  secret-key: minioadmin
-  bucket-name: shopifake-images-dev
-  region: us-east-1
 
 springdoc:
   api-docs:
@@ -47,6 +37,19 @@ springdoc:
     path: /swagger-ui.html
     enabled: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
 server:
-  port: 5002
+  port: 5001
+
+# Image Service Configuration
+image-service:
+  url: http://localhost:5002
 

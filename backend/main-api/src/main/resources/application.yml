@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: main-api
+  profiles:
+    active: dev
+
