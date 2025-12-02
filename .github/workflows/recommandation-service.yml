@@ -49,10 +49,17 @@ jobs:
       service-path: backend/recommandation-service
       python-version: '3.11'
 
+  test:
+    name: Run Unit Tests
+    uses: ./.github/workflows/test-python.yml
+    with:
+      service-path: backend/recommandation-service
+      python-version: '3.11'
+
   build:
     name: Build Docker Image
     uses: ./.github/workflows/build-python.yml
-    needs: lint
+    needs: [lint, test]
     with:
       service-path: backend/recommandation-service
       service-name: recommandation-service
@@ -68,7 +75,7 @@ jobs:
       needs.build.result == 'success' &&
       (github.event_name == 'workflow_dispatch' ||
        (github.event_name == 'push' && (github.ref_name == 'staging' || github.ref_name == 'main')))
-    needs: [lint, build]
+    needs: [lint, test, build]
     uses: ./.github/workflows/deploy-k8s.yml
     with:
       service-name: recommandation-service
