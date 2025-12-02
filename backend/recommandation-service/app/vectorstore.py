@@ -144,10 +144,10 @@ def get_product_vector(product_id: str) -> Optional[List[float]]:
             point = results[0][0]
             vector = point.vector
             # Ensure we return list[float]
-            if isinstance(vector, list) and all(
-                isinstance(x, (int, float)) for x in vector
+            if isinstance(vector, list) and not isinstance(
+                vector[0] if vector else None, list
             ):
-                return vector
+                return [float(x) for x in vector]
     except Exception as e:
         print(f"Error retrieving vector for product {product_id}: {e}")
 
