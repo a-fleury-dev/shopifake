@@ -16,7 +16,7 @@ spec:
       - name: ghcr-secret
       containers:
       - name: recommandation-service
-        image: ghcr.io/a-fleury/shopifake/recommandation-service:latest
+        image: ghcr.io/a-fleury-dev/shopifake/recommandation-service:latest
         ports:
         - containerPort: 8080
         env:
