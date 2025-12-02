@@ -3,7 +3,12 @@
     "id": "p1",
     "title": "Organic cotton t-shirt (unisex)",
     "description": "Soft organic cotton, 180gsm, breathable fabric; neutral colors.",
-    "tags": ["tshirt", "organic", "cotton", "unisex"],
+    "tags": [
+      "tshirt",
+      "organic",
+      "cotton",
+      "unisex"
+    ],
     "price": 19.9,
     "category": "Apparel"
   },
@@ -11,7 +16,12 @@
     "id": "p2",
     "title": "Lightweight running shoes",
     "description": "Dynamic cushioning, urban trail friendly, mesh upper for airflow.",
-    "tags": ["shoes", "running", "sport", "lightweight"],
+    "tags": [
+      "shoes",
+      "running",
+      "sport",
+      "lightweight"
+    ],
     "price": 89.0,
     "category": "Sport"
   },
@@ -19,7 +29,11 @@
     "id": "p3",
     "title": "Classic adjustable cap",
     "description": "Adjustable strap, breathable panels, curved visor.",
-    "tags": ["cap", "accessory", "breathable"],
+    "tags": [
+      "cap",
+      "accessory",
+      "breathable"
+    ],
     "price": 12.5,
     "category": "Accessories"
   },
@@ -27,7 +41,12 @@
     "id": "p4",
     "title": "Organic cotton t-shirt (slim fit)",
     "description": "Slim fit tee made from 100% certified organic cotton, soft touch.",
-    "tags": ["tshirt", "organic", "cotton", "slim"],
+    "tags": [
+      "tshirt",
+      "organic",
+      "cotton",
+      "slim"
+    ],
     "price": 21.5,
     "category": "Apparel"
   },
@@ -35,15 +54,25 @@
     "id": "p5",
     "title": "Organic cotton crew neck t-shirt",
     "description": "Crew neck, minimal branding, sustainably sourced organic cotton.",
-    "tags": ["tshirt", "organic", "cotton", "crew"],
-    "price": 18.9,
+    "tags": [
+      "tshirt",
+      "organic",
+      "cotton",
+      "crew"
+    ],
+    "price": 18.8,
     "category": "Apparel"
   },
   {
     "id": "p6",
     "title": "Organic cotton hoodie",
     "description": "Mid-weight hoodie, brushed inside, 85% organic cotton, 15% recycled poly.",
-    "tags": ["hoodie", "organic", "cotton", "sustainable"],
+    "tags": [
+      "hoodie",
+      "organic",
+      "cotton",
+      "sustainable"
+    ],
     "price": 49.0,
     "category": "Apparel"
   },
@@ -51,7 +80,12 @@
     "id": "p7",
     "title": "Performance trail running shoes",
     "description": "Aggressive outsole grip, responsive foam, moisture-wicking lining.",
-    "tags": ["shoes", "running", "trail", "performance"],
+    "tags": [
+      "shoes",
+      "running",
+      "trail",
+      "performance"
+    ],
     "price": 119.0,
     "category": "Sport"
   },
@@ -59,7 +93,12 @@
     "id": "p8",
     "title": "Breathable running socks (pack of 3)",
     "description": "Arch support, anti-blister zones, moisture control fibers.",
-    "tags": ["socks", "running", "sport", "breathable"],
+    "tags": [
+      "socks",
+      "running",
+      "sport",
+      "breathable"
+    ],
     "price": 14.0,
     "category": "Sport"
   },
@@ -67,7 +106,12 @@
     "id": "p9",
     "title": "Organic cotton graphic t-shirt",
     "description": "Eco-friendly inks on 100% organic cotton, relaxed fit.",
-    "tags": ["tshirt", "organic", "cotton", "graphic"],
+    "tags": [
+      "tshirt",
+      "organic",
+      "cotton",
+      "graphic"
+    ],
     "price": 22.0,
     "category": "Apparel"
   },
@@ -75,7 +119,12 @@
     "id": "p10",
     "title": "Adjustable baseball cap",
     "description": "Classic baseball style, adjustable metal buckle, cotton twill.",
-    "tags": ["cap", "accessory", "baseball", "cotton"],
+    "tags": [
+      "cap",
+      "accessory",
+      "baseball",
+      "cotton"
+    ],
     "price": 15.0,
     "category": "Accessories"
   },
@@ -83,7 +132,12 @@
     "id": "p11",
     "title": "Organic cotton v-neck t-shirt",
     "description": "V-neck cut, light and breathable organic cotton fabric.",
-    "tags": ["tshirt", "organic", "cotton", "vneck"],
+    "tags": [
+      "tshirt",
+      "organic",
+      "cotton",
+      "vneck"
+    ],
     "price": 20.5,
     "category": "Apparel"
   },
@@ -91,7 +145,12 @@
     "id": "p12",
     "title": "Recycled polyester running shorts",
     "description": "Lightweight shorts with inner brief and reflective details.",
-    "tags": ["shorts", "running", "sport", "recycled"],
+    "tags": [
+      "shorts",
+      "running",
+      "sport",
+      "recycled"
+    ],
     "price": 32.0,
     "category": "Sport"
   }
