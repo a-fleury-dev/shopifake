@@ -1,0 +1,160 @@
+name: Deploy to Kubernetes Workflow
+
+on:
+  workflow_call:
+    inputs:
+      service-name:
+        description: 'Name of the service to deploy (e.g., chatbot-service)'
+        required: true
+        type: string
+      k8s-manifests-path:
+        description: 'Path to Kubernetes manifests directory (e.g., k8s/chatbot-service)'
+        required: true
+        type: string
+      namespace-staging:
+        description: 'Kubernetes namespace for staging environment'
+        required: true
+        type: string
+      namespace-production:
+        description: 'Kubernetes namespace for production environment'
+        required: true
+        type: string
+      environment:
+        description: 'Target environment (staging|production) - only for workflow_dispatch'
+        required: false
+        type: string
+        default: 'staging'
+      deployments:
+        description: 'Comma-separated list of deployment names to wait for rollout (e.g., chatbot-service,qdrant)'
+        required: true
+        type: string
+    secrets:
+      KUBECONFIG_BASE64:
+        description: 'Base64-encoded kubeconfig for cluster access'
+        required: true
+      OPENAI_API_KEY:
+        description: 'OpenAI API key (optional, only if needed by the service)'
+        required: false
+
+jobs:
+  deploy:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure kubectl
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 --decode > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Determine namespace
+        id: ns
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            env_input="${{ inputs.environment }}"
+            if [ "$env_input" = "production" ] || [ "$env_input" = "prod" ]; then
+              echo "NAMESPACE=${{ inputs.namespace-production }}" >> $GITHUB_ENV
+            else
+              echo "NAMESPACE=${{ inputs.namespace-staging }}" >> $GITHUB_ENV
+            fi
+          else
+            branch="${{ github.ref_name }}"
+            if [ "$branch" = "main" ]; then
+              echo "NAMESPACE=${{ inputs.namespace-production }}" >> $GITHUB_ENV
+            else
+              echo "NAMESPACE=${{ inputs.namespace-staging }}" >> $GITHUB_ENV
+            fi
+          fi
+          echo "Namespace: $NAMESPACE"
+
+      - name: Verify cluster connection
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Create image pull secret
+        run: |
+          kubectl create secret docker-registry ghcr-secret \
+            --docker-server=ghcr.io \
+            --docker-username=${{ github.actor }} \
+            --docker-password=${{ secrets.GITHUB_TOKEN }} \
+            --namespace=$NAMESPACE \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Create application secrets
+        if: inputs.service-name == 'chatbot-service' || inputs.service-name == 'recommandation-service'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -n "$OPENAI_API_KEY" ]; then
+            kubectl create secret generic openai-secret \
+              --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY" \
+              --namespace=$NAMESPACE \
+              --dry-run=client -o yaml | kubectl apply -f -
+          else
+            echo "⚠️ OPENAI_API_KEY not provided, skipping secret creation"
+          fi
+
+      - name: Update image tag in deployment
+        run: |
+          # Find all deployment files and update image tags to use commit SHA
+          find ${{ inputs.k8s-manifests-path }} -name '*-deployment.yaml' -o -name 'deployment.yaml' | while read -r file; do
+            # Update image tag from :latest to :${{ github.sha }}
+            sed -i "s|image: ghcr.io/${{ github.repository }}/${{ inputs.service-name }}:latest|image: ghcr.io/${{ github.repository }}/${{ inputs.service-name }}:${{ github.sha }}|g" "$file"
+            
+            echo "Updated deployment in $file:"
+            grep "image:" "$file" || true
+          done
+
+      - name: Apply Kubernetes manifests
+        run: |
+          # Apply namespace (cluster-scoped)
+          if [ -f "${{ inputs.k8s-manifests-path }}/namespace.yaml" ]; then
+            kubectl apply -f ${{ inputs.k8s-manifests-path }}/namespace.yaml
+          fi
+
+          # Apply configmaps
+          if [ -f "${{ inputs.k8s-manifests-path }}/configmap.yaml" ]; then
+            kubectl -n $NAMESPACE apply -f ${{ inputs.k8s-manifests-path }}/configmap.yaml
+          fi
+
+          # Apply all other manifests (deployments, services, etc.)
+          kubectl -n $NAMESPACE apply -f ${{ inputs.k8s-manifests-path }}/ --recursive
+
+      - name: Wait for rollouts
+        run: |
+          IFS=',' read -ra DEPLOYMENTS <<< "${{ inputs.deployments }}"
+          for deployment in "${DEPLOYMENTS[@]}"; do
+            deployment=$(echo "$deployment" | xargs) # trim whitespace
+            echo "Waiting for deployment/$deployment..."
+            kubectl rollout status deployment/$deployment -n $NAMESPACE --timeout=5m
+          done
+
+      - name: Print service endpoints and pods
+        run: |
+          echo "=== Services ($NAMESPACE) ==="
+          kubectl get services -n $NAMESPACE
+          echo
+          echo "=== Pods ($NAMESPACE) ==="
+          kubectl get pods -n $NAMESPACE
+
+      - name: Deployment summary
+        run: |
+          echo "✅ Deployment completed"
+          echo "Service: ${{ inputs.service-name }}"
+          echo "Namespace: $NAMESPACE"
+          echo "Trigger: ${{ github.event_name }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"

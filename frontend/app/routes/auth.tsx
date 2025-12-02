@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
   ShoppingBag,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import type { Route } from './+types/auth';
 import { translations } from '../lib/translations';
+import { useTheme } from '../contexts/ThemeContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -41,8 +42,7 @@ interface User {
 
 export default function Auth() {
   const navigate = useNavigate();
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [language, setLanguage] = useState<'en' | 'fr'>('en');
+  const { theme, setTheme, language } = useTheme();
   const [isLogin, setIsLogin] = useState(true);
 
   // Form states
@@ -55,29 +55,6 @@ export default function Auth() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    // Sync with saved preferences
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
-
-    const savedLanguage = localStorage.getItem('language') as 'en' | 'fr' | null;
-    if (savedLanguage) {
-      setLanguage(savedLanguage);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Update theme
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
 
   const t = translations[language];
 
@@ -123,7 +100,7 @@ export default function Auth() {
       setTimeout(() => {
         localStorage.setItem('shopifake_user', JSON.stringify(mockUser));
         localStorage.setItem('shopifake_auth_time', Date.now().toString());
-        navigate('/dashboard');
+        navigate('/shops');
       }, 1000);
 
       setEmail('');
@@ -168,7 +145,7 @@ export default function Auth() {
       setTimeout(() => {
         localStorage.setItem('shopifake_user', JSON.stringify(mockUser));
         localStorage.setItem('shopifake_auth_time', Date.now().toString());
-        navigate('/dashboard');
+        navigate('/shops');
       }, 1000);
 
       setEmail('');

@@ -9,6 +9,8 @@ target/
 *.zip
 *.tar.gz
 *.rar
+**/venv/
+**/.venv/
 
 # Maven specific
 pom.xml.tag
@@ -123,6 +125,7 @@ coverage/
 *.cover
 .hypothesis/
 .pytest_cache/
+**/*.pyc
 
 # ===========================
 # Temporary files

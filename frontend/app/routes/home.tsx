@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import type { Route } from './+types/home';
 import { translations } from '../lib/translations';
@@ -11,6 +10,7 @@ import {
   FinalCTASection,
   Footer,
 } from '../components/home';
+import { useTheme } from '../contexts/ThemeContext';
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -25,37 +25,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Home() {
   const navigate = useNavigate();
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [language, setLanguage] = useState<'en' | 'fr'>('en');
-
-  useEffect(() => {
-    // Sync with root theme
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
-
-    // Get saved language preference
-    const savedLanguage = localStorage.getItem('language') as 'en' | 'fr' | null;
-    if (savedLanguage) {
-      setLanguage(savedLanguage);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Update document class when theme changes
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  useEffect(() => {
-    // Save language preference
-    localStorage.setItem('language', language);
-  }, [language]);
+  const { theme, setTheme, language, setLanguage } = useTheme();
 
   const t = translations[language];
 
