@@ -101,6 +101,9 @@ logs/
 *.kubeconfig
 kubeconfig
 kubeconfig.*
+k8s/**/secret.yaml
+k8s/**/secrets.yaml
+
 
 # ===========================
 # Build & Dependencies

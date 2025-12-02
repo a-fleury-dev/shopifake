@@ -22,6 +22,8 @@ spec:
         envFrom:
         - configMapRef:
             name: chatbot-config
+        - secretRef:
+            name: chatbot-secret
         resources:
           requests:
             memory: "256Mi"

@@ -136,6 +136,15 @@ jobs:
             --namespace=$NAMESPACE \
             --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Create OpenAI secret
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          kubectl create secret generic chatbot-secret \
+            --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY" \
+            --namespace=$NAMESPACE \
+            --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Update image tag in deployment
         run: |
           # Update the image tag to use the commit SHA
