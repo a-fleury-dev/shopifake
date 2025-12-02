@@ -1,6 +1,13 @@
 from typing import List, Optional
 from qdrant_client import QdrantClient
-from qdrant_client.models import FieldCondition, Filter, MatchValue, Distance, VectorParams, PointStruct
+from qdrant_client.models import (
+    FieldCondition,
+    Filter,
+    MatchValue,
+    Distance,
+    VectorParams,
+    PointStruct,
+)
 
 from .config import QDRANT_URL, QDRANT_COLLECTION, MAX_RECOMMENDATIONS
 from .embeddings import embed
@@ -36,16 +43,16 @@ def product_text(p: Product) -> str:
 def upsert_products(items: List[Product]) -> int:
     """
     Index products into Qdrant.
-    
+
     Args:
         items: List of products to index
-        
+
     Returns:
         Number of products indexed
     """
     ensure_collection()
     points: List[PointStruct] = []
-    
+
     for idx, item in enumerate(items, start=1):
         vec = embed(product_text(item))
         points.append(
@@ -63,7 +70,7 @@ def upsert_products(items: List[Product]) -> int:
                 },
             )
         )
-    
+
     qdrant.upsert(collection_name=QDRANT_COLLECTION, points=points)
     return len(points)
 
@@ -71,10 +78,10 @@ def upsert_products(items: List[Product]) -> int:
 def get_product_by_id(product_id: str) -> Optional[Product]:
     """
     Retrieve a product from Qdrant by its product_id.
-    
+
     Args:
         product_id: The product ID to search for
-        
+
     Returns:
         Product object if found, None otherwise
     """
@@ -84,17 +91,14 @@ def get_product_by_id(product_id: str) -> Optional[Product]:
             collection_name=QDRANT_COLLECTION,
             scroll_filter=Filter(
                 must=[
-                    FieldCondition(
-                        key="product_id",
-                        match=MatchValue(value=product_id)
-                    )
+                    FieldCondition(key="product_id", match=MatchValue(value=product_id))
                 ]
             ),
             limit=1,
             with_payload=True,
-            with_vectors=False
+            with_vectors=False,
         )
-        
+
         if results[0]:  # results is a tuple (points, next_page_offset)
             point = results[0][0]
             payload = point.payload
@@ -105,21 +109,21 @@ def get_product_by_id(product_id: str) -> Optional[Product]:
                 tags=payload.get("tags"),
                 price=payload.get("price"),
                 category=payload.get("category"),
-                image_url=payload.get("image_url")
+                image_url=payload.get("image_url"),
             )
     except Exception as e:
         print(f"Error retrieving product {product_id}: {e}")
-    
+
     return None
 
 
 def get_product_vector(product_id: str) -> Optional[List[float]]:
     """
     Get the embedding vector for a product by its ID.
-    
+
     Args:
         product_id: The product ID
-        
+
     Returns:
         Embedding vector if found, None otherwise
     """
@@ -128,47 +132,42 @@ def get_product_vector(product_id: str) -> Optional[List[float]]:
             collection_name=QDRANT_COLLECTION,
             scroll_filter=Filter(
                 must=[
-                    FieldCondition(
-                        key="product_id",
-                        match=MatchValue(value=product_id)
-                    )
+                    FieldCondition(key="product_id", match=MatchValue(value=product_id))
                 ]
             ),
             limit=1,
             with_payload=False,
-            with_vectors=True
+            with_vectors=True,
         )
-        
+
         if results[0]:
             point = results[0][0]
             return point.vector
     except Exception as e:
         print(f"Error retrieving vector for product {product_id}: {e}")
-    
+
     return None
 
 
 def find_similar_products(
-    query_vector: List[float],
-    limit: int = 5,
-    exclude_id: Optional[str] = None
+    query_vector: List[float], limit: int = 5, exclude_id: Optional[str] = None
 ) -> List[Product]:
     """
     Find similar products based on a query vector.
-    
+
     Args:
         query_vector: The embedding vector to search with
         limit: Maximum number of results
         exclude_id: Optional product ID to exclude from results
-        
+
     Returns:
         List of similar products with similarity scores
     """
     limit = max(1, min(limit, MAX_RECOMMENDATIONS))
-    
+
     # If we need to exclude a product, fetch one extra and filter it out
     search_limit = limit + 1 if exclude_id else limit
-    
+
     try:
         if hasattr(qdrant, "search"):
             results = qdrant.search(
@@ -184,33 +183,38 @@ def find_similar_products(
                 limit=search_limit,
                 with_payload=True,
             ).points
-        
+
         products = []
         for point in results:
             payload = point.payload
+            if not payload:
+                continue
+
             product_id = payload.get("product_id", "")
-            
+
             # Skip the excluded product
             if exclude_id and product_id == exclude_id:
                 continue
-            
-            products.append(Product(
-                id=product_id,
-                title=payload.get("title"),
-                description=payload.get("description"),
-                tags=payload.get("tags"),
-                price=payload.get("price"),
-                category=payload.get("category"),
-                image_url=payload.get("image_url"),
-                score=float(point.score) if hasattr(point, 'score') else None
-            ))
-            
+
+            products.append(
+                Product(
+                    id=product_id,
+                    title=payload.get("title"),
+                    description=payload.get("description"),
+                    tags=payload.get("tags"),
+                    price=payload.get("price"),
+                    category=payload.get("category"),
+                    image_url=payload.get("image_url"),
+                    score=float(point.score) if hasattr(point, "score") else None,
+                )
+            )
+
             # Stop when we have enough results
             if len(products) >= limit:
                 break
-        
+
         return products
-    
+
     except Exception as e:
         print(f"Error finding similar products: {e}")
         return []
@@ -219,34 +223,34 @@ def find_similar_products(
 def recommend_by_product(product_id: str, limit: int = 5) -> List[Product]:
     """
     Recommend products similar to a given product.
-    
+
     Args:
         product_id: The product ID to base recommendations on
         limit: Number of recommendations to return
-        
+
     Returns:
         List of recommended products
     """
     vector = get_product_vector(product_id)
     if not vector:
         return []
-    
+
     return find_similar_products(vector, limit=limit, exclude_id=product_id)
 
 
 def recommend_by_text(query: str, limit: int = 5) -> List[Product]:
     """
     Recommend products based on a text query.
-    
+
     Args:
         query: Text description of desired products
         limit: Number of recommendations to return
-        
+
     Returns:
         List of recommended products
     """
     if not query or not query.strip():
         return []
-    
+
     vector = embed(query)
     return find_similar_products(vector, limit=limit)

@@ -9,7 +9,7 @@ from app.routes.webhook import router as webhook_router
 app = FastAPI(
     title="Recommendation Service",
     description="Product recommendation service using vector similarity",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # CORS middleware
