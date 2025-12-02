@@ -147,7 +147,9 @@ def get_product_vector(product_id: str) -> Optional[List[float]]:
             if isinstance(vector, list) and not isinstance(
                 vector[0] if vector else None, list
             ):
-                return [float(x) for x in vector]
+                from typing import cast
+
+                return cast(List[float], vector)
     except Exception as e:
         print(f"Error retrieving vector for product {product_id}: {e}")
 
