@@ -3,4 +3,3 @@ spring:
     name: main-api
   profiles:
     active: dev
-
