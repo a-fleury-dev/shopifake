@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException, Query
-from typing import Optional
 
 from app.models import (
     RecommendationRequest,

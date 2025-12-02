@@ -4,7 +4,6 @@ This demonstrates how the product service would call the recommendation service.
 """
 
 import requests
-import json
 
 # Configuration
 WEBHOOK_URL = "http://localhost:8080/api/v1/webhook/products"

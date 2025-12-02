@@ -3,7 +3,7 @@ from typing import Optional, Literal
 from pydantic import BaseModel
 
 from app.models import Product
-from app.vectorstore import upsert_products, get_product_by_id
+from app.vectorstore import upsert_products
 
 router = APIRouter(prefix="/api/v1/webhook", tags=["webhook"])
 
@@ -53,7 +53,7 @@ async def handle_product_webhook(
                 )
 
             # Index the single product
-            count = upsert_products([event.product])
+            upsert_products([event.product])
 
             action = "indexed" if event.event_type == "product.created" else "updated"
             return WebhookResponse(

@@ -51,7 +51,7 @@ def test_max_recommendations():
 
 def test_default_recommendations():
     """Test default recommendations configuration"""
-    from app.config import DEFAULT_RECOMMENDATIONS
+    from app.config import DEFAULT_RECOMMENDATIONS, MAX_RECOMMENDATIONS
 
     assert DEFAULT_RECOMMENDATIONS is not None
     assert isinstance(DEFAULT_RECOMMENDATIONS, int)
