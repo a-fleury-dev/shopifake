@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: recommandation-config
+data:
+  QDRANT_URL: "http://qdrant-service:6333"  # Points to Qdrant in same namespace
+  QDRANT_COLLECTION: "products"
+  OPENAI_EMBED_MODEL: "text-embedding-3-small"
+  MAX_RECOMMENDATIONS: "10"
+  DEFAULT_RECOMMENDATIONS: "5"

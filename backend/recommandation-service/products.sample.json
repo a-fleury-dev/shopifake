@@ -1,0 +1,304 @@
+{
+    "items": [
+        {
+            "id": "shoe_001",
+            "title": "Nike Air Max 90",
+            "description": "Classic running shoes with Air cushioning technology. Perfect for daily runs and casual wear with its iconic design.",
+            "tags": [
+                "shoes",
+                "running",
+                "nike",
+                "sports",
+                "sneakers"
+            ],
+            "price": 120.00,
+            "category": "Footwear",
+            "image_url": "https://example.com/nike-air-max-90.jpg"
+        },
+        {
+            "id": "shoe_002",
+            "title": "Adidas Ultraboost 22",
+            "description": "Premium running shoes with responsive Boost cushioning for maximum energy return. Designed for performance.",
+            "tags": [
+                "shoes",
+                "running",
+                "adidas",
+                "sports",
+                "sneakers"
+            ],
+            "price": 180.00,
+            "category": "Footwear",
+            "image_url": "https://example.com/adidas-ultraboost.jpg"
+        },
+        {
+            "id": "shoe_003",
+            "title": "Red Canvas Sneakers",
+            "description": "Casual red canvas sneakers perfect for everyday wear. Comfortable, stylish, and affordable.",
+            "tags": [
+                "shoes",
+                "casual",
+                "red",
+                "sneakers",
+                "canvas"
+            ],
+            "price": 50.00,
+            "category": "Footwear",
+            "image_url": "https://example.com/red-sneakers.jpg"
+        },
+        {
+            "id": "shoe_004",
+            "title": "Puma RS-X",
+            "description": "Bold retro-style running shoes with chunky silhouette and vibrant colors. Statement piece for any outfit.",
+            "tags": [
+                "shoes",
+                "puma",
+                "retroo",
+                "sneakers",
+                "casual"
+            ],
+            "price": 110.00,
+            "category": "Footwear",
+            "image_url": "https://example.com/puma-rsx.jpg"
+        },
+        {
+            "id": "shoe_005",
+            "title": "New Balance 990v5",
+            "description": "Made in USA premium running shoes with superior cushioning and classic design. Heritage meets performance.",
+            "tags": [
+                "shoes",
+                "running",
+                "new balance",
+                "premium",
+                "sneakers"
+            ],
+            "price": 175.00,
+            "category": "Footwear",
+            "image_url": "https://example.com/new-balance-990.jpg"
+        },
+        {
+            "id": "phone_001",
+            "title": "iPhone 15 Pro",
+            "description": "Latest flagship smartphone with A17 Pro chip, titanium design, and advanced camera system with 5x optical zoom.",
+            "tags": [
+                "phone",
+                "apple",
+                "smartphone",
+                "technology",
+                "5g"
+            ],
+            "price": 999.00,
+            "category": "Electronics",
+            "image_url": "https://example.com/iphone-15-pro.jpg"
+        },
+        {
+            "id": "phone_002",
+            "title": "Samsung Galaxy S24 Ultra",
+            "description": "Premium Android smartphone with AI features, S Pen, stunning 200MP camera, and powerful performance.",
+            "tags": [
+                "phone",
+                "samsung",
+                "smartphone",
+                "android",
+                "5g"
+            ],
+            "price": 1199.00,
+            "category": "Electronics",
+            "image_url": "https://example.com/galaxy-s24.jpg"
+        },
+        {
+            "id": "phone_003",
+            "title": "Google Pixel 8 Pro",
+            "description": "Smart Android phone with incredible AI photography, pure Google experience, and 7 years of updates.",
+            "tags": [
+                "phone",
+                "google",
+                "smartphone",
+                "android",
+                "photography"
+            ],
+            "price": 899.00,
+            "category": "Electronics",
+            "image_url": "https://example.com/pixel-8-pro.jpg"
+        },
+        {
+            "id": "laptop_001",
+            "title": "MacBook Pro 14\" M3",
+            "description": "Professional laptop with Apple M3 chip, stunning Liquid Retina XDR display, and up to 22 hours battery life.",
+            "tags": [
+                "laptop",
+                "apple",
+                "macbook",
+                "professional",
+                "m3"
+            ],
+            "price": 1999.00,
+            "category": "Electronics",
+            "image_url": "https://example.com/macbook-pro-14.jpg"
+        },
+        {
+            "id": "laptop_002",
+            "title": "Dell XPS 15",
+            "description": "Premium Windows laptop with Intel Core i7, OLED display, and powerful performance for creators.",
+            "tags": [
+                "laptop",
+                "dell",
+                "windows",
+                "professional",
+                "creator"
+            ],
+            "price": 1799.00,
+            "category": "Electronics",
+            "image_url": "https://example.com/dell-xps-15.jpg"
+        },
+        {
+            "id": "laptop_003",
+            "title": "Lenovo ThinkPad X1 Carbon",
+            "description": "Business ultrabook with legendary ThinkPad keyboard, lightweight design, and enterprise security.",
+            "tags": [
+                "laptop",
+                "lenovo",
+                "thinkpad",
+                "business",
+                "ultrabook"
+            ],
+            "price": 1499.00,
+            "category": "Electronics",
+            "image_url": "https://example.com/thinkpad-x1.jpg"
+        },
+        {
+            "id": "watch_001",
+            "title": "Apple Watch Series 9",
+            "description": "Advanced health and fitness smartwatch with bright display, precise GPS, and comprehensive health tracking.",
+            "tags": [
+                "watch",
+                "apple",
+                "smartwatch",
+                "fitness",
+                "health"
+            ],
+            "price": 399.00,
+            "category": "Wearables",
+            "image_url": "https://example.com/apple-watch-9.jpg"
+        },
+        {
+            "id": "watch_002",
+            "title": "Samsung Galaxy Watch 6",
+            "description": "Premium Android smartwatch with advanced sleep tracking, fitness features, and elegant design.",
+            "tags": [
+                "watch",
+                "samsung",
+                "smartwatch",
+                "fitness",
+                "android"
+            ],
+            "price": 349.00,
+            "category": "Wearables",
+            "image_url": "https://example.com/galaxy-watch-6.jpg"
+        },
+        {
+            "id": "headphone_001",
+            "title": "Sony WH-1000XM5",
+            "description": "Industry-leading noise cancelling headphones with exceptional sound quality and 30-hour battery life.",
+            "tags": [
+                "headphones",
+                "sony",
+                "wireless",
+                "noise-cancelling",
+                "audio"
+            ],
+            "price": 399.00,
+            "category": "Audio",
+            "image_url": "https://example.com/sony-wh1000xm5.jpg"
+        },
+        {
+            "id": "headphone_002",
+            "title": "AirPods Pro 2",
+            "description": "Premium wireless earbuds with active noise cancellation, spatial audio, and seamless Apple integration.",
+            "tags": [
+                "earbuds",
+                "apple",
+                "wireless",
+                "noise-cancelling",
+                "audio"
+            ],
+            "price": 249.00,
+            "category": "Audio",
+            "image_url": "https://example.com/airpods-pro-2.jpg"
+        },
+        {
+            "id": "tablet_001",
+            "title": "iPad Pro 12.9\"",
+            "description": "Professional tablet with M2 chip, stunning display, and Apple Pencil support for creators.",
+            "tags": [
+                "tablet",
+                "apple",
+                "ipad",
+                "professional",
+                "m2"
+            ],
+            "price": 1099.00,
+            "category": "Electronics",
+            "image_url": "https://example.com/ipad-pro-12.jpg"
+        },
+        {
+            "id": "camera_001",
+            "title": "Sony Alpha A7 IV",
+            "description": "Full-frame mirrorless camera with 33MP sensor, 4K 60fps video, and professional features.",
+            "tags": [
+                "camera",
+                "sony",
+                "mirrorless",
+                "professional",
+                "photography"
+            ],
+            "price": 2499.00,
+            "category": "Photography",
+            "image_url": "https://example.com/sony-a7iv.jpg"
+        },
+        {
+            "id": "clothing_001",
+            "title": "Nike Dri-FIT Running Shirt",
+            "description": "Lightweight performance running shirt with moisture-wicking technology. Perfect for intense workouts.",
+            "tags": [
+                "clothing",
+                "nike",
+                "running",
+                "sports",
+                "shirt"
+            ],
+            "price": 35.00,
+            "category": "Apparel",
+            "image_url": "https://example.com/nike-dri-fit.jpg"
+        },
+        {
+            "id": "clothing_002",
+            "title": "Levi's 501 Original Jeans",
+            "description": "Classic straight-fit jeans with iconic design. The original since 1873.",
+            "tags": [
+                "clothing",
+                "levis",
+                "jeans",
+                "denim",
+                "casual"
+            ],
+            "price": 89.00,
+            "category": "Apparel",
+            "image_url": "https://example.com/levis-501.jpg"
+        },
+        {
+            "id": "bag_001",
+            "title": "North Face Backpack",
+            "description": "Durable outdoor backpack with multiple compartments, padded laptop sleeve, and water-resistant fabric.",
+            "tags": [
+                "bag",
+                "backpack",
+                "outdoor",
+                "north face",
+                "travel"
+            ],
+            "price": 129.00,
+            "category": "Accessories",
+            "image_url": "https://example.com/north-face-backpack.jpg"
+        }
+    ]
+}

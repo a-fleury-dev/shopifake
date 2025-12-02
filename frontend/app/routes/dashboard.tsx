@@ -2,6 +2,7 @@ import type { Route } from './+types/dashboard';
 import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router';
 import { Dashboard } from '../components/Dashboard';
+import { useTheme } from '../contexts/ThemeContext';
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -11,16 +12,7 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function DashboardRoute() {
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    // Initialize theme from localStorage or default to 'dark'
-    const savedTheme = localStorage.getItem('shopifake_theme');
-    return (savedTheme as 'dark' | 'light') || 'dark';
-  });
-  const [language, _setLanguage] = useState<'en' | 'fr'>(() => {
-    // Initialize language from localStorage or default to 'en'
-    const savedLanguage = localStorage.getItem('shopifake_language');
-    return (savedLanguage as 'en' | 'fr') || 'en';
-  });
+  const { theme, setTheme, language } = useTheme();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [currentUser, setCurrentUser] = useState<{
     email: string;
@@ -51,21 +43,6 @@ export default function DashboardRoute() {
       setIsAuthenticated(false);
     }
   }, []);
-
-  // Apply theme to document and save to localStorage
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('shopifake_theme', theme);
-  }, [theme]);
-
-  // Save language to localStorage when it changes
-  useEffect(() => {
-    localStorage.setItem('shopifake_language', language);
-  }, [language]);
 
   const handleLogout = () => {
     localStorage.removeItem('shopifake_user');

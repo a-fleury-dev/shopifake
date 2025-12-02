@@ -27,6 +27,8 @@ import {
 } from 'lucide-react';
 import type { CategoryType } from './types';
 
+import type { Shop } from '../../lib/shops/types';
+
 interface DashboardSidebarProps {
   language: 'en' | 'fr';
   theme: 'light' | 'dark';
@@ -42,6 +44,8 @@ interface DashboardSidebarProps {
   onTabChange: (tab: string) => void;
   onLogout: () => void;
   translations: any;
+  currentShop?: Shop;
+  onBackToShops?: () => void;
 }
 
 export function DashboardSidebar({
@@ -55,6 +59,8 @@ export function DashboardSidebar({
   onTabChange,
   onLogout,
   translations,
+  currentShop,
+  onBackToShops,
 }: DashboardSidebarProps) {
   const dt = translations;
 
@@ -89,6 +95,24 @@ export function DashboardSidebar({
   return (
     <div className="w-80 h-screen sticky top-0 flex flex-col p-6 glass-strong-transparent bg-transparent border-r border-border/30">
       <DashboardLogo />
+      
+      {/* Shop Selector / Back to Shops */}
+      {currentShop && onBackToShops && (
+        <button
+          onClick={onBackToShops}
+          className="mb-4 px-4 py-3 rounded-xl ios-surface hover:bg-primary/10 transition-colors text-left"
+        >
+          <div className="flex items-center gap-3">
+            <Store className="w-5 h-5 text-primary" />
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold truncate">{currentShop.name}</div>
+              <div className="text-xs text-muted-foreground truncate">
+                {currentShop.domain}.shopifake.com
+              </div>
+            </div>
+          </div>
+        </button>
+      )}
 
       {/* Category Selector */}
       <div className="mb-6">

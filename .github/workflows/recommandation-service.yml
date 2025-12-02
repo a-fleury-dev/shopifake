@@ -1,0 +1,89 @@
+name: Recommendation Service - CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+      - staging
+      - main
+      - 'feature/**'
+    paths:
+      - 'backend/recommandation-service/**'
+      - '.github/workflows/recommandation-service.yml'
+      - '.github/workflows/lint-python.yml'
+      - '.github/workflows/test-python.yml'
+      - '.github/workflows/build-python.yml'
+  pull_request:
+    branches:
+      - develop
+      - staging
+      - main
+    paths:
+      - 'backend/recommandation-service/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment (staging|production)"
+        required: true
+        default: "staging"
+
+# Permissions required by the reusable workflows
+permissions:
+  contents: read
+  packages: write
+
+# Prevent overlapping deploys to the same environment 
+concurrency:
+  group: recommandation-service-${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.ref_name == 'main' && 'production' || 'staging') }}
+  cancel-in-progress: true
+
+jobs:
+  # ================================
+  # CI JOBS
+  # ================================
+  
+  lint:
+    name: Lint Python Code
+    uses: ./.github/workflows/lint-python.yml
+    with:
+      service-path: backend/recommandation-service
+      python-version: '3.11'
+
+  test:
+    name: Run Unit Tests
+    uses: ./.github/workflows/test-python.yml
+    with:
+      service-path: backend/recommandation-service
+      python-version: '3.11'
+
+  build:
+    name: Build Docker Image
+    uses: ./.github/workflows/build-python.yml
+    needs: [lint, test]
+    with:
+      service-path: backend/recommandation-service
+      service-name: recommandation-service
+
+  # ================================
+  # CD JOBS
+  # ================================
+  
+  deploy:
+    name: Deploy to Kubernetes
+    # Deploy only for staging/main branches or manual workflow_dispatch
+    if: |
+      needs.build.result == 'success' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'push' && (github.ref_name == 'staging' || github.ref_name == 'main')))
+    needs: [lint, test, build]
+    uses: ./.github/workflows/deploy-k8s.yml
+    with:
+      service-name: recommandation-service
+      k8s-manifests-path: k8s/recommandation-service
+      namespace-staging: recommandation-staging
+      namespace-production: recommandation-prod
+      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || '' }}
+      deployments: recommandation-service,qdrant
+    secrets:
+      KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

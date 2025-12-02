@@ -1,0 +1,117 @@
+services:
+  # PostgreSQL for main-api
+  postgres-main:
+    image: postgres:16-alpine
+    container_name: main-api-postgres
+    environment:
+      POSTGRES_DB: main_api
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pwd
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_main_data:/var/lib/postgresql/data
+    networks:
+      - shopifake-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d main_api"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL for image-service
+  postgres-image:
+    image: postgres:16-alpine
+    container_name: image-service-postgres
+    environment:
+      POSTGRES_DB: image_service
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pwd
+    ports:
+      - "5555:5432"
+    volumes:
+      - postgres_image_data:/var/lib/postgresql/data
+    networks:
+      - shopifake-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d image_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO for image storage
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - shopifake-network
+    restart: always
+
+  # Main API Service
+  main-api:
+    build:
+      context: ./main-api
+      dockerfile: Dockerfile
+    container_name: main-api
+    ports:
+      - "5001:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-main:5432/main_api
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: pwd
+    depends_on:
+      postgres-main:
+        condition: service_healthy
+    networks:
+      - shopifake-network
+    restart: unless-stopped
+
+  # Image Service
+  image-service:
+    build:
+      context: ./image-service
+      dockerfile: Dockerfile
+    container_name: image-service
+    ports:
+      - "5002:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-image:5432/image_service
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: pwd
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    depends_on:
+      postgres-image:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - shopifake-network
+    restart: unless-stopped
+
+volumes:
+  postgres_main_data:
+  postgres_image_data:
+  minio_data:
+
+networks:
+  shopifake-network:
+    driver: bridge
+
