@@ -75,112 +75,19 @@ jobs:
   deploy:
     name: Deploy to Kubernetes
     # Deploy only for staging/main branches or manual workflow_dispatch
-    # Skip deployment for PRs and feature branches
     if: |
       needs.build.result == 'success' &&
       (github.event_name == 'workflow_dispatch' ||
        (github.event_name == 'push' && (github.ref_name == 'staging' || github.ref_name == 'main')))
     needs: [lint, tests, build]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'latest'
-
-      - name: Configure kubectl
-        run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 --decode > $HOME/.kube/config
-          chmod 600 $HOME/.kube/config
-
-      - name: Determine namespace
-        id: ns
-        shell: bash
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            env_input="${{ inputs.environment }}"
-            if [ "$env_input" = "production" ] || [ "$env_input" = "prod" ]; then
-              echo "NAMESPACE=chatbot-prod" >> $GITHUB_ENV
-            else
-              echo "NAMESPACE=chatbot-staging" >> $GITHUB_ENV
-            fi
-          else
-            branch="${{ github.ref_name }}"
-            if [ "$branch" = "main" ]; then
-              echo "NAMESPACE=chatbot-prod" >> $GITHUB_ENV
-            else
-              echo "NAMESPACE=chatbot-staging" >> $GITHUB_ENV
-            fi
-          fi
-          echo "Namespace: $NAMESPACE"
-
-      - name: Verify cluster connection
-        run: |
-          kubectl cluster-info
-          kubectl get nodes
-
-
-      - name: Create image pull secret
-        run: |
-          kubectl create secret docker-registry ghcr-secret \
-            --docker-server=ghcr.io \
-            --docker-username=${{ github.actor }} \
-            --docker-password=${{ secrets.GITHUB_TOKEN }} \
-            --namespace=$NAMESPACE \
-            --dry-run=client -o yaml | kubectl apply -f -
-
-      - name: Create OpenAI secret
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-          kubectl create secret generic chatbot-secret \
-            --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY" \
-            --namespace=$NAMESPACE \
-            --dry-run=client -o yaml | kubectl apply -f -
-
-      - name: Update image tag in deployment
-        run: |
-          # Update the image tag to use the commit SHA
-          sed -i "s|image: ghcr.io/a-fleury-dev/shopifake/chatbot-service:latest|image: ghcr.io/${{ github.repository }}/chatbot-service:${{ github.sha }}|g" k8s/chatbot-service/chatbot-service-deployment.yaml
-          
-          # Show the updated deployment for verification
-          echo "Updated deployment manifest:"
-          grep "image:" k8s/chatbot-service/chatbot-service-deployment.yaml
-
-      - name: Apply Kubernetes manifests
-        run: |
-          # Apply namespace (cluster-scoped)
-          kubectl apply -f k8s/chatbot-service/namespace.yaml
-
-          # Apply service deployments in the target namespace
-          kubectl -n $NAMESPACE apply -f k8s/chatbot-service/configmap.yaml
-          kubectl -n $NAMESPACE apply -f k8s/chatbot-service/qdrant-deployment.yaml
-          kubectl -n $NAMESPACE apply -f k8s/chatbot-service/chatbot-service-deployment.yaml
-
-      - name: Wait for rollouts
-        run: |
-          kubectl rollout status deployment/chatbot-service -n $NAMESPACE --timeout=5m
-          kubectl rollout status deployment/qdrant -n $NAMESPACE --timeout=5m
-
-      - name: Print service endpoints and pods
-        run: |
-          echo "=== Services ($NAMESPACE) ==="
-          kubectl get services -n $NAMESPACE
-          echo
-          echo "=== Pods ($NAMESPACE) ==="
-          kubectl get pods -n $NAMESPACE
-
-      - name: Deployment summary
-        run: |
-          echo "✅ Deployment completed"
-          echo "Namespace: $NAMESPACE"
-          echo "Trigger: ${{ github.event_name }}"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Commit: ${{ github.sha }}"
+    uses: ./.github/workflows/deploy-k8s.yml
+    with:
+      service-name: chatbot-service
+      k8s-manifests-path: k8s/chatbot-service
+      namespace-staging: chatbot-staging
+      namespace-production: chatbot-prod
+      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || '' }}
+      deployments: chatbot-service,qdrant
+    secrets:
+      KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

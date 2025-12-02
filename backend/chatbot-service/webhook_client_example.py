@@ -9,11 +9,10 @@ Usage:
 
 import requests
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import Dict, Any
 
 
 CHATBOT_WEBHOOK_URL = "http://localhost:8080/webhook/product"
-CHATBOT_BULK_WEBHOOK_URL = "http://localhost:8080/webhook/products/bulk"
 
 
 def send_product_created(product: Dict[str, Any]) -> Dict:
@@ -97,35 +96,7 @@ def send_product_deleted(product_id: str, product_title: str) -> Dict:
 
     return response.json()
 
-
-def send_bulk_products(products: List[Dict[str, Any]]) -> Dict:
-    """
-    Envoie plusieurs produits en une seule requête (synchronisation en masse).
-
-    Args:
-        products: Liste des produits à synchroniser
-
-    Returns:
-        La réponse du webhook
-    """
-    payload = {
-        "event": "products.sync",
-        "timestamp": datetime.utcnow().isoformat() + "Z",
-        "data": products,
-    }
-
-    print(f"📤 Envoi de {len(products)} produits en masse")
-    response = requests.post(CHATBOT_BULK_WEBHOOK_URL, json=payload)
-
-    if response.status_code == 200:
-        print(f"✅ Succès: {response.json()}")
-    else:
-        print(f"❌ Erreur {response.status_code}: {response.text}")
-
-    return response.json()
-
-
-def main():
+def webhook_examples():
     """Exemples d'utilisation du webhook"""
     print("=" * 80)
     print("WEBHOOK CLIENT - EXEMPLES D'UTILISATION")
@@ -183,7 +154,3 @@ def main():
     print("\n" + "=" * 80)
     print("✅ Tous les exemples ont été exécutés")
     print("=" * 80)
-
-
-if __name__ == "__main__":
-    main()
