@@ -44,7 +44,7 @@ def mock_vectorstore():
 @pytest.fixture(autouse=True)
 def mock_embeddings():
     """Mock embedding generation - auto-applied to all tests"""
-    with patch("app.embeddings.generate_embedding") as mock_embed:
+    with patch("app.embeddings.embed") as mock_embed:
         # Return a fixed dimension embedding vector (1536 for text-embedding-3-small)
         mock_embed.return_value = [0.1] * 1536
         yield mock_embed
