@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: recommandation-staging
+  labels:
+    environment: staging
+    app: recommandation-service
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: recommandation-prod
+  labels:
+    environment: production
+    app: recommandation-service

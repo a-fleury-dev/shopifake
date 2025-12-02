@@ -1,0 +1,162 @@
+name: Recommendation Service - CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+      - staging
+      - main
+      - 'feature/**'
+    paths:
+      - 'backend/recommandation-service/**'
+      - '.github/workflows/recommandation-service.yml'
+      - '.github/workflows/lint-python.yml'
+      - '.github/workflows/test-python.yml'
+      - '.github/workflows/build-python.yml'
+  pull_request:
+    branches:
+      - develop
+      - staging
+      - main
+    paths:
+      - 'backend/recommandation-service/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment (staging|production)"
+        required: true
+        default: "staging"
+
+# Permissions required by the reusable workflows
+permissions:
+  contents: read
+  packages: write
+
+# Prevent overlapping deploys to the same environment 
+concurrency:
+  group: recommandation-service-${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.ref_name == 'main' && 'production' || 'staging') }}
+  cancel-in-progress: true
+
+jobs:
+  # ================================
+  # CI JOBS
+  # ================================
+  
+  lint:
+    name: Lint Python Code
+    uses: ./.github/workflows/lint-python.yml
+    with:
+      service-path: backend/recommandation-service
+      python-version: '3.11'
+
+  build:
+    name: Build Docker Image
+    uses: ./.github/workflows/build-python.yml
+    needs: lint
+    with:
+      service-path: backend/recommandation-service
+      service-name: recommandation-service
+
+  # ================================
+  # CD JOBS
+  # ================================
+  
+  deploy:
+    name: Deploy to Kubernetes
+    # Deploy only for staging/main branches or manual workflow_dispatch
+    if: |
+      needs.build.result == 'success' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'push' && (github.ref_name == 'staging' || github.ref_name == 'main')))
+    needs: [lint, build]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure kubectl
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 --decode > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Determine namespace
+        id: ns
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            env_input="${{ inputs.environment }}"
+            if [ "$env_input" = "production" ] || [ "$env_input" = "prod" ]; then
+              echo "NAMESPACE=recommandation-prod" >> $GITHUB_ENV
+            else
+              echo "NAMESPACE=recommandation-staging" >> $GITHUB_ENV
+            fi
+          else
+            branch="${{ github.ref_name }}"
+            if [ "$branch" = "main" ]; then
+              echo "NAMESPACE=recommandation-prod" >> $GITHUB_ENV
+            else
+              echo "NAMESPACE=recommandation-staging" >> $GITHUB_ENV
+            fi
+          fi
+          echo "Namespace: $NAMESPACE"
+
+      - name: Verify cluster connection
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Create image pull secret
+        run: |
+          kubectl create secret docker-registry ghcr-secret \
+            --docker-server=ghcr.io \
+            --docker-username=${{ github.actor }} \
+            --docker-password=${{ secrets.GITHUB_TOKEN }} \
+            --namespace=$NAMESPACE \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Create OpenAI API secret
+        run: |
+          kubectl create secret generic openai-secret \
+            --from-literal=api-key=${{ secrets.OPENAI_API_KEY }} \
+            --namespace=$NAMESPACE \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply Kubernetes manifests
+        run: |
+          # Apply namespace (cluster-scoped)
+          kubectl apply -f k8s/recommandation-service/namespace.yaml
+
+          # Apply ConfigMap and deployments in the target namespace
+          kubectl -n $NAMESPACE apply -f k8s/recommandation-service/configmap.yaml
+          kubectl -n $NAMESPACE apply -f k8s/recommandation-service/qdrant-deployment.yaml
+          kubectl -n $NAMESPACE apply -f k8s/recommandation-service/recommandation-service-deployment.yaml
+
+      - name: Wait for rollouts
+        run: |
+          kubectl rollout status deployment/qdrant -n $NAMESPACE --timeout=3m
+          kubectl rollout status deployment/recommandation-service -n $NAMESPACE --timeout=5m
+
+      - name: Print service endpoints and pods
+        run: |
+          echo "=== Services ($NAMESPACE) ==="
+          kubectl get services -n $NAMESPACE
+          echo
+          echo "=== Pods ($NAMESPACE) ==="
+          kubectl get pods -n $NAMESPACE
+
+      - name: Deployment summary
+        run: |
+          echo "✅ Deployment completed"
+          echo "Namespace: $NAMESPACE"
+          echo "Trigger: ${{ github.event_name }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
