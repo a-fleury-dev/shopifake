@@ -25,7 +25,7 @@ on:
 permissions:
   contents: read
 
-# Prevent overlapping deploys to the same environment
+# Prevent overlapping deploys to the same environment 
 concurrency:
   group: chatbot-service-${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.event.workflow_run.head_branch == 'main' && 'production' || 'staging') }}
   cancel-in-progress: true
