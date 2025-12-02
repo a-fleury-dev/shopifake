@@ -5,4 +5,4 @@ router = APIRouter()
 
 @router.get("/")
 def health():
-    return {"status": "ok", "service": "chatbot-api"}
+    return {"status": "ok", "service": "chatbot-service"}

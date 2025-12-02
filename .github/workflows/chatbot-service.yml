@@ -1,17 +1,25 @@
-name: Chatbot Service - CD Pipeline
+name: Chatbot Service - CI/CD Pipeline
 
 on:
-  workflow_run:
-    workflows: ["Chatbot Service - CI Pipeline"]
-    types: [completed]
-    branches:
-      - staging
-      - main
   push:
     branches:
+      - develop
       - staging
+      - main
+      - 'feature/**'
     paths:
-      - '.github/workflows/chatbot-service-cd.yml'
+      - 'backend/chatbot-service/**'
+      - '.github/workflows/chatbot-service.yml'
+      - '.github/workflows/lint-python.yml'
+      - '.github/workflows/test-python.yml'
+      - '.github/workflows/build-python.yml'
+  pull_request:
+    branches:
+      - develop
+      - staging
+      - main
+    paths:
+      - 'backend/chatbot-service/**'
   workflow_dispatch:
     inputs:
       environment:
@@ -22,18 +30,57 @@ on:
         description: "Image tag to deploy (optional)"
         required: false
 
+# Permissions required by the reusable `build-python.yml` workflow
 permissions:
   contents: read
+  packages: write
 
 # Prevent overlapping deploys to the same environment 
 concurrency:
-  group: chatbot-service-${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.event.workflow_run.head_branch == 'main' && 'production' || 'staging') }}
+  group: chatbot-service-${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.ref_name == 'main' && 'production' || 'staging') }}
   cancel-in-progress: true
 
 jobs:
+  # ================================
+  # CI JOBS
+  # ================================
+  
+  lint:
+    name: Lint Python Code
+    uses: ./.github/workflows/lint-python.yml
+    with:
+      service-path: backend/chatbot-service
+      python-version: '3.11'
+
+  tests:
+    name: Run Tests
+    uses: ./.github/workflows/test-python.yml
+    needs: lint
+    with:
+      service-path: backend/chatbot-service
+      python-version: '3.11'
+
+  build:
+    name: Build Docker Image
+    uses: ./.github/workflows/build-python.yml
+    needs: tests
+    with:
+      service-path: backend/chatbot-service
+      service-name: chatbot-service
+
+  # ================================
+  # CD JOBS
+  # ================================
+  
   deploy:
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event.workflow_run.conclusion == 'success'
-    name: Deploy Chatbot Service to Kubernetes
+    name: Deploy to Kubernetes
+    # Deploy only for staging/main branches or manual workflow_dispatch
+    # Skip deployment for PRs and feature branches
+    if: |
+      needs.build.result == 'success' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'push' && (github.ref_name == 'staging' || github.ref_name == 'main')))
+    needs: [lint, tests, build]
     runs-on: ubuntu-latest
 
     steps:
@@ -41,7 +88,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3
@@ -66,7 +112,7 @@ jobs:
               echo "NAMESPACE=chatbot-staging" >> $GITHUB_ENV
             fi
           else
-            branch="${{ github.event.workflow_run.head_branch }}"
+            branch="${{ github.ref_name }}"
             if [ "$branch" = "main" ]; then
               echo "NAMESPACE=chatbot-prod" >> $GITHUB_ENV
             else
@@ -80,6 +126,18 @@ jobs:
           kubectl cluster-info
           kubectl get nodes
 
+
+      - name: Create image pull secret
+        run: |
+          kubectl create secret docker-registry ghcr-secret \
+            --docker-server=ghcr.io \
+            --docker-username=${{ github.actor }} \
+            --docker-password=${{ secrets.GITHUB_TOKEN }} \
+            --namespace=$NAMESPACE \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+
+
       - name: Apply Kubernetes manifests
         run: |
           # Apply namespace (cluster-scoped)
@@ -88,11 +146,11 @@ jobs:
           # Apply service deployments in the target namespace
           kubectl -n $NAMESPACE apply -f k8s/chatbot-service/configmap.yaml
           kubectl -n $NAMESPACE apply -f k8s/chatbot-service/qdrant-deployment.yaml
-          kubectl -n $NAMESPACE apply -f k8s/chatbot-service/chatbot-api-deployment.yaml
+          kubectl -n $NAMESPACE apply -f k8s/chatbot-service-deployment.yaml
 
       - name: Wait for rollouts
         run: |
-          kubectl rollout status deployment/chatbot-api -n $NAMESPACE --timeout=5m
+          kubectl rollout status deployment -n $NAMESPACE --timeout=5m
           kubectl rollout status deployment/qdrant -n $NAMESPACE --timeout=5m
 
       - name: Print service endpoints and pods
@@ -108,10 +166,5 @@ jobs:
           echo "✅ Deployment completed"
           echo "Namespace: $NAMESPACE"
           echo "Trigger: ${{ github.event_name }}"
-          if [ "${{ github.event_name }}" = "workflow_run" ]; then
-            echo "Source branch: ${{ github.event.workflow_run.head_branch }}"
-            echo "Commit: ${{ github.event.workflow_run.head_sha }}"
-          else
-            echo "Ref: ${{ github.ref }}"
-            echo "Commit: ${{ github.sha }}"
-          fi
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"

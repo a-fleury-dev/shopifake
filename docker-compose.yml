@@ -8,9 +8,9 @@ services:
       - qdrant-data:/qdrant/storage
     restart: unless-stopped
 
-  chatbot-api:
-    build: ./backend/chatbot-service/chatbot-api
-    container_name: chatbot-api
+  chatbot-service:
+    build: ./backend/chatbot-service
+    container_name: chatbot-service
     depends_on:
       - qdrant
     environment:
