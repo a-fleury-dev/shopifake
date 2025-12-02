@@ -146,11 +146,11 @@ jobs:
           # Apply service deployments in the target namespace
           kubectl -n $NAMESPACE apply -f k8s/chatbot-service/configmap.yaml
           kubectl -n $NAMESPACE apply -f k8s/chatbot-service/qdrant-deployment.yaml
-          kubectl -n $NAMESPACE apply -f k8s/chatbot-service-deployment.yaml
+          kubectl -n $NAMESPACE apply -f k8s/chatbot-service/chatbot-service-deployment.yaml
 
       - name: Wait for rollouts
         run: |
-          kubectl rollout status deployment -n $NAMESPACE --timeout=5m
+          kubectl rollout status deployment/chatbot-service -n $NAMESPACE --timeout=5m
           kubectl rollout status deployment/qdrant -n $NAMESPACE --timeout=5m
 
       - name: Print service endpoints and pods
