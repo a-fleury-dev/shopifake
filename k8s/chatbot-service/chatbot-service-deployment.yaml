@@ -1,25 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: chatbot-api
+  name: chatbot-service
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: chatbot-api
+      app: chatbot-service
   template:
     metadata:
       labels:
-        app: chatbot-api
+        app: chatbot-service
     spec:
+      imagePullSecrets:
+      - name: ghcr-secret
       containers:
-      - name: chatbot-api
-        image: ghcr.io/a-fleury/shopifake-chatbot-api:latest
+      - name: chatbot-service
+        image: ghcr.io/a-fleury-dev/shopifake/chatbot-service:latest
         ports:
         - containerPort: 8080
         envFrom:
         - configMapRef:
             name: chatbot-config
+        - secretRef:
+            name: chatbot-secret
         resources:
           requests:
             memory: "256Mi"
@@ -43,10 +47,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: chatbot-api-service
+  name: chatbot-service
 spec:
   selector:
-    app: chatbot-api
+    app: chatbot-service
   ports:
   - port: 8080
     targetPort: 8080

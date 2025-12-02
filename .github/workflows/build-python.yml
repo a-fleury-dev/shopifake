@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       service-path:
-        description: 'Path to the Python service to build (e.g., backend/chatbot-service/chatbot-api)'
+        description: 'Path to the Python service to build (e.g., backend/chatbot-service)'
         required: true
         type: string
       service-name:

@@ -1,5 +1,5 @@
 """
-Test configuration and fixtures for chatbot-api tests
+Test configuration and fixtures for chatbot-service tests
 """
 
 import pytest
