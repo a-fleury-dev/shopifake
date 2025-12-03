@@ -5,9 +5,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from '../ui/select';
 import {
   DollarSign,
   Package,
-  MessageCircle,
-  TestTube,
-  Clock,
   FileText,
   BookOpen,
   Image as ImageIcon,
@@ -17,9 +14,6 @@ import {
   Tags,
   Store,
   Globe,
-  CreditCard,
-  Truck,
-  Bell,
   BarChart3,
   ShoppingBag,
   FileEdit,
@@ -98,20 +92,33 @@ export function DashboardSidebar({
       
       {/* Shop Selector / Back to Shops */}
       {currentShop && onBackToShops && (
-        <button
-          onClick={onBackToShops}
-          className="mb-4 px-4 py-3 rounded-xl ios-surface hover:bg-primary/10 transition-colors text-left"
-        >
-          <div className="flex items-center gap-3">
-            <Store className="w-5 h-5 text-primary" />
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold truncate">{currentShop.name}</div>
-              <div className="text-xs text-muted-foreground truncate">
-                {currentShop.domain}.shopifake.com
+        <div className="mb-4 space-y-2">
+          <button
+            onClick={onBackToShops}
+            className="w-full px-4 py-3 rounded-xl ios-surface text-left"
+          >
+            <div className="flex items-center gap-3">
+              <Store className="w-5 h-5 text-primary" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold truncate">{currentShop.name}</div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {currentShop.domain}.shopifake.com
+                </div>
               </div>
             </div>
-          </div>
-        </button>
+          </button>
+          
+          {/* View Public Storefront Button */}
+          <a
+            href={`/${currentShop.domain}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full px-4 py-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 transition-colors text-left flex items-center gap-2 text-sm font-medium text-primary"
+          >
+            <Globe className="w-4 h-4" />
+            {language === 'en' ? 'View Storefront' : 'Voir la Boutique'}
+          </a>
+        </div>
       )}
 
       {/* Category Selector */}
@@ -203,27 +210,6 @@ export function DashboardSidebar({
               isActive={activeTab === 'audit-stock'}
               onClick={() => onTabChange('audit-stock')}
             />
-            <SidebarItem
-              id="audit-chatbot"
-              icon={MessageCircle}
-              label={dt.sidebar.chatbot}
-              isActive={activeTab === 'audit-chatbot'}
-              onClick={() => onTabChange('audit-chatbot')}
-            />
-            <SidebarItem
-              id="audit-ab-testing"
-              icon={TestTube}
-              label={dt.sidebar.abTesting}
-              isActive={activeTab === 'audit-ab-testing'}
-              onClick={() => onTabChange('audit-ab-testing')}
-            />
-            <SidebarItem
-              id="audit-history"
-              icon={Clock}
-              label={dt.sidebar.history}
-              isActive={activeTab === 'audit-history'}
-              onClick={() => onTabChange('audit-history')}
-            />
           </>
         )}
 
@@ -294,15 +280,22 @@ export function DashboardSidebar({
             />
             <SidebarItem
               id="backoffice-products"
-              icon={Package}
-              label={dt.sidebar.productsVariants}
+              icon={ShoppingBag}
+              label={dt.sidebar.products || (language === 'en' ? 'Products' : 'Produits')}
               isActive={activeTab === 'backoffice-products'}
               onClick={() => onTabChange('backoffice-products')}
             />
             <SidebarItem
+              id="backoffice-variants"
+              icon={Grid3x3}
+              label={language === 'en' ? 'Variants' : 'Variantes'}
+              isActive={activeTab === 'backoffice-variants'}
+              onClick={() => onTabChange('backoffice-variants')}
+            />
+            <SidebarItem
               id="backoffice-stock"
               icon={Package}
-              label={dt.sidebar.stockManagement}
+              label={dt.sidebar.stockManagement || (language === 'en' ? 'Stock' : 'Stock')}
               isActive={activeTab === 'backoffice-stock'}
               onClick={() => onTabChange('backoffice-stock')}
             />
@@ -326,27 +319,7 @@ export function DashboardSidebar({
               isActive={activeTab === 'settings-domains'}
               onClick={() => onTabChange('settings-domains')}
             />
-            <SidebarItem
-              id="settings-payment"
-              icon={CreditCard}
-              label={dt.sidebar.paymentSettings}
-              isActive={activeTab === 'settings-payment'}
-              onClick={() => onTabChange('settings-payment')}
-            />
-            <SidebarItem
-              id="settings-shipping"
-              icon={Truck}
-              label={dt.sidebar.shippingSettings}
-              isActive={activeTab === 'settings-shipping'}
-              onClick={() => onTabChange('settings-shipping')}
-            />
-            <SidebarItem
-              id="settings-notifications"
-              icon={Bell}
-              label={dt.sidebar.notificationSettings}
-              isActive={activeTab === 'settings-notifications'}
-              onClick={() => onTabChange('settings-notifications')}
-            />
+
           </>
         )}
       </nav>
