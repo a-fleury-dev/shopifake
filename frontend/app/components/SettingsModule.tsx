@@ -26,13 +26,7 @@ import { Separator } from './ui/separator';
 
 interface SettingsModuleProps {
   language: 'en' | 'fr';
-  initialSection?: 'store' | 'domains' | 'payment' | 'shipping' | 'notifications';
-}
-
-interface Domain {
-  id: string;
-  name: string;
-  isActive: boolean;
+  initialSection?: 'store' | 'domains';
 }
 
 export function SettingsModule({ language, initialSection = 'store' }: SettingsModuleProps) {
@@ -44,54 +38,20 @@ export function SettingsModule({ language, initialSection = 'store' }: SettingsM
   // Store Information State
   const [storeName, setStoreName] = useState('Shopifake Store');
   const [storeDescription, setStoreDescription] = useState('Your one-stop shop for everything');
-  const [storeEmail, setStoreEmail] = useState('contact@shopifake.com');
-  const [storeAddress, setStoreAddress] = useState('123 Main Street, New York, NY 10001');
-  const [storePhone, setStorePhone] = useState('+1 (555) 123-4567');
+  const [bannerUrl, setBannerUrl] = useState('https://images.unsplash.com/photo-1441986300917-64674bd600d8');
+  const [selectedBannerFile, setSelectedBannerFile] = useState<File | null>(null);
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
 
-  // Domains State
-  const [domains, setDomains] = useState<Domain[]>([
-    { id: '1', name: 'shopifake.com', isActive: true },
-    { id: '2', name: 'www.shopifake.com', isActive: true },
-  ]);
-  const [newDomainName, setNewDomainName] = useState('');
-
-  // Payment Settings State
-  const [paymentGateway, setPaymentGateway] = useState('stripe');
-  const [apiKey, setApiKey] = useState('pk_test_***************');
-  const [secretKey, setSecretKey] = useState('sk_test_***************');
-  const [currency, setCurrency] = useState('usd');
-
-  // Shipping Settings State
-  const [shippingProvider, setShippingProvider] = useState('fedex');
-  const [flatRate, setFlatRate] = useState('9.99');
-  const [enableFreeShipping, setEnableFreeShipping] = useState(false);
-
-  // Notification Settings State
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [smsNotifications, setSmsNotifications] = useState(false);
-  const [senderEmail, setSenderEmail] = useState('noreply@shopifake.com');
-  const [notificationEvents, setNotificationEvents] = useState({
-    newOrder: true,
-    paymentReceived: true,
-    orderShipped: true,
-    productAdded: false,
-    productUpdated: false,
-    stockChanged: true,
-    newCustomer: true,
-    customerReview: false,
-    categoryAdded: false,
-    categoryUpdated: false,
-    promotionCreated: false,
-  });
+  // Domain State (single domain name)
+  const [domainName, setDomainName] = useState('my-awesome-shop');
+  const [isEditingDomain, setIsEditingDomain] = useState(false);
+  const [domainError, setDomainError] = useState<string | null>(null);
 
   const text = {
     en: {
       // Navigation
       storeInfo: 'Store Information',
-      domains: 'Domains',
-      payment: 'Payment Settings',
-      shipping: 'Shipping Settings',
-      notifications: 'Notification Settings',
+      domains: 'Domain',
 
       // Common
       save: 'Save',
@@ -105,22 +65,21 @@ export function SettingsModule({ language, initialSection = 'store' }: SettingsM
       storeNamePlaceholder: 'Enter store name',
       description: 'Description',
       descriptionPlaceholder: 'Enter store description',
-      storeEmail: 'Store Email',
-      storeEmailPlaceholder: 'contact@example.com',
-      storeAddress: 'Store Address',
-      storeAddressPlaceholder: 'Enter physical address',
-      storePhone: 'Store Phone',
-      storePhonePlaceholder: '+1 (555) 123-4567',
+      bannerUrl: 'Banner Image',
+      bannerUrlPlaceholder: 'https://example.com/banner.jpg',
+      selectBannerImage: 'Select Image',
+      uploadingBanner: 'Uploading...',
+      bannerImageSelected: 'Image selected',
       storeInfoTooltip:
-        'Make sure all contact information is up-to-date for customer communications',
+        'Customize your store display name, description, and banner image',
 
       // Domains
-      domainName: 'Store Domain Name',
-      domainPlaceholder: 'example.com',
-      addDomain: 'Add Domain',
-      activeDomains: 'Active Domains',
+      domainName: 'Domain Name',
+      domainPlaceholder: 'my-shop-name',
+      domainNote: 'This will be your store URL: ',
+      domainError: 'This domain name is already taken',
       domainsTooltip:
-        'You can add multiple domains for your store. Make sure DNS is properly configured.',
+        'Choose a unique domain name for your store. This cannot contain spaces or special characters.',
 
       // Payment Settings
       paymentGateway: 'Payment Gateway',
@@ -170,10 +129,7 @@ export function SettingsModule({ language, initialSection = 'store' }: SettingsM
     fr: {
       // Navigation
       storeInfo: 'Informations du Magasin',
-      domains: 'Domaines',
-      payment: 'Paramètres de Paiement',
-      shipping: 'Paramètres de Livraison',
-      notifications: 'Paramètres de Notification',
+      domains: 'Domaine',
 
       // Common
       save: 'Enregistrer',
@@ -187,90 +143,84 @@ export function SettingsModule({ language, initialSection = 'store' }: SettingsM
       storeNamePlaceholder: 'Entrez le nom du magasin',
       description: 'Description',
       descriptionPlaceholder: 'Entrez la description du magasin',
-      storeEmail: 'Email du Magasin',
-      storeEmailPlaceholder: 'contact@exemple.com',
-      storeAddress: 'Adresse du Magasin',
-      storeAddressPlaceholder: "Entrez l'adresse physique",
-      storePhone: 'Téléphone du Magasin',
-      storePhonePlaceholder: '+33 1 23 45 67 89',
+      bannerUrl: 'Image de Bannière',
+      bannerUrlPlaceholder: 'https://exemple.com/banniere.jpg',
+      selectBannerImage: 'Sélectionner une Image',
+      uploadingBanner: 'Téléchargement...',
+      bannerImageSelected: 'Image sélectionnée',
       storeInfoTooltip:
-        'Assurez-vous que toutes les informations de contact sont à jour pour communiquer avec les clients',
+        'Personnalisez le nom d\'affichage, la description et la bannière de votre boutique',
 
       // Domains
       domainName: 'Nom de Domaine',
-      domainPlaceholder: 'exemple.com',
-      addDomain: 'Ajouter un Domaine',
-      activeDomains: 'Domaines Actifs',
+      domainPlaceholder: 'mon-nom-de-boutique',
+      domainNote: 'Ceci sera l\'URL de votre boutique : ',
+      domainError: 'Ce nom de domaine est déjà utilisé',
       domainsTooltip:
-        'Vous pouvez ajouter plusieurs domaines. Assurez-vous que le DNS est correctement configuré.',
+        'Choisissez un nom de domaine unique pour votre boutique. Pas d\'espaces ni de caractères spéciaux.',
 
-      // Payment Settings
-      paymentGateway: 'Passerelle de Paiement',
-      selectGateway: 'Sélectionner une passerelle',
-      apiKey: 'Clé API',
-      apiKeyPlaceholder: 'Entrez votre clé API',
-      secretKey: 'Clé Secrète',
-      secretKeyPlaceholder: 'Entrez votre clé secrète',
-      currency: 'Devise',
-      selectCurrency: 'Sélectionner une devise',
-      paymentTooltip: 'Gardez vos identifiants API sécurisés. Ne les partagez jamais publiquement.',
 
-      // Shipping Settings
-      shippingProvider: 'Fournisseur de Livraison',
-      selectProvider: 'Sélectionner un fournisseur',
-      flatRate: 'Tarif Forfaitaire',
-      flatRatePlaceholder: '9.99',
-      enableFreeShipping: 'Activer la Livraison Gratuite',
-      freeShippingLabel: 'Offrir la livraison gratuite',
-      shippingTooltip:
-        'Configurez vos paramètres de livraison par défaut. Vous pouvez les modifier par produit.',
-
-      // Notification Settings
-      emailNotifications: 'Notifications par Email',
-      emailNotificationsLabel: 'Envoyer des notifications par email',
-      smsNotifications: 'Notifications par SMS',
-      smsNotificationsLabel: 'Envoyer des notifications par SMS',
-      senderEmail: 'Email Expéditeur',
-      senderEmailPlaceholder: 'noreply@exemple.com',
-      notificationEvents: 'Événements de Notification',
-      notificationEventsDesc: 'Choisissez quels événements déclenchent des notifications',
-      notificationsTooltip:
-        'Configurez quand et comment vous souhaitez être notifié des événements',
-
-      // Notification Events
-      newOrder: 'Nouvelle Commande Passée',
-      paymentReceived: 'Paiement Reçu',
-      orderShipped: 'Commande Expédiée',
-      productAdded: 'Produit Ajouté',
-      productUpdated: 'Produit Mis à Jour',
-      stockChanged: 'Niveau de Stock Modifié',
-      newCustomer: 'Nouveau Client Enregistré',
-      customerReview: 'Client a Laissé un Avis',
-      categoryAdded: 'Catégorie Ajoutée',
-      categoryUpdated: 'Catégorie Mise à Jour',
-      promotionCreated: 'Remise ou Promotion Créée',
     },
   };
 
   const t = text[language];
 
   // Domain handlers
-  const handleAddDomain = () => {
-    if (newDomainName.trim()) {
-      setDomains([
-        ...domains,
-        {
-          id: Date.now().toString(),
-          name: newDomainName.trim(),
-          isActive: true,
-        },
-      ]);
-      setNewDomainName('');
+  const handleSaveDomain = () => {
+    // TODO: Check if domain exists via API
+    // For now, simulate with simple validation
+    const forbiddenNames = ['admin', 'api', 'www', 'shop', 'store'];
+    
+    if (forbiddenNames.includes(domainName.toLowerCase())) {
+      setDomainError(t.domainError);
+      return;
     }
+    
+    // TODO: Call API to update domain
+    setDomainError(null);
+    setIsEditingDomain(false);
+    console.log('Domain updated:', domainName);
   };
 
-  const handleDeleteDomain = (id: string) => {
-    setDomains(domains.filter((d) => d.id !== id));
+  const handleBannerFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert(language === 'en' ? 'Please select an image file' : 'Veuillez sélectionner un fichier image');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert(language === 'en' ? 'Image size must be less than 5MB' : 'La taille de l\'image doit être inférieure à 5 Mo');
+      return;
+    }
+
+    setSelectedBannerFile(file);
+    setIsUploadingBanner(true);
+
+    try {
+      // TODO: Upload to image-service
+      // const formData = new FormData();
+      // formData.append('image', file);
+      // const response = await fetch('/api/images/upload', {
+      //   method: 'POST',
+      //   body: formData,
+      // });
+      // const data = await response.json();
+      // setBannerUrl(data.url);
+
+      // For now, create a local preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setBannerUrl(previewUrl);
+    } catch (error) {
+      console.error('Error uploading banner:', error);
+      alert(language === 'en' ? 'Failed to upload image' : 'Échec du téléchargement de l\'image');
+    } finally {
+      setIsUploadingBanner(false);
+    }
   };
 
   // Save handlers
@@ -292,8 +242,8 @@ export function SettingsModule({ language, initialSection = 'store' }: SettingsM
             <CardTitle>{t.storeInfo}</CardTitle>
             <CardDescription>
               {language === 'en'
-                ? "Manage your store's basic information and contact details"
-                : 'Gérez les informations de base et les coordonnées de votre magasin'}
+                ? "Customize your store's display name, description, and banner"
+                : 'Personnalisez le nom, la description et la bannière de votre boutique'}
             </CardDescription>
           </div>
           <TooltipProvider>
@@ -332,39 +282,45 @@ export function SettingsModule({ language, initialSection = 'store' }: SettingsM
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="storeEmail">{t.storeEmail}</Label>
-            <Input
-              id="storeEmail"
-              type="email"
-              value={storeEmail}
-              onChange={(e) => setStoreEmail(e.target.value)}
-              placeholder={t.storeEmailPlaceholder}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="storePhone">{t.storePhone}</Label>
-            <Input
-              id="storePhone"
-              type="tel"
-              value={storePhone}
-              onChange={(e) => setStorePhone(e.target.value)}
-              placeholder={t.storePhonePlaceholder}
-            />
-          </div>
-        </div>
-
         <div className="space-y-2">
-          <Label htmlFor="storeAddress">{t.storeAddress}</Label>
-          <Textarea
-            id="storeAddress"
-            value={storeAddress}
-            onChange={(e) => setStoreAddress(e.target.value)}
-            placeholder={t.storeAddressPlaceholder}
-            rows={3}
-          />
+          <Label htmlFor="bannerFile">{t.bannerUrl}</Label>
+          <div className="flex gap-2">
+            <Input
+              id="bannerFile"
+              type="file"
+              accept="image/*"
+              onChange={handleBannerFileSelect}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => document.getElementById('bannerFile')?.click()}
+              disabled={isUploadingBanner}
+              className="flex-1"
+            >
+              {isUploadingBanner ? t.uploadingBanner : t.selectBannerImage}
+            </Button>
+            {selectedBannerFile && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md flex-1">
+                <span className="text-sm text-muted-foreground truncate">
+                  {selectedBannerFile.name}
+                </span>
+              </div>
+            )}
+          </div>
+          {bannerUrl && (
+            <div className="mt-3 relative aspect-video rounded-lg overflow-hidden border border-border">
+              <img
+                src={bannerUrl}
+                alt="Banner preview"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/1920x400?text=Invalid+Banner+URL';
+                }}
+              />
+            </div>
+          )}
         </div>
 
         <Separator />
@@ -391,8 +347,8 @@ export function SettingsModule({ language, initialSection = 'store' }: SettingsM
             <CardTitle>{t.domains}</CardTitle>
             <CardDescription>
               {language === 'en'
-                ? 'Manage your store domains and custom URLs'
-                : 'Gérez vos domaines et URLs personnalisées'}
+                ? 'Set your unique store domain name'
+                : 'Définissez votre nom de domaine unique'}
             </CardDescription>
           </div>
           <TooltipProvider>
@@ -411,501 +367,78 @@ export function SettingsModule({ language, initialSection = 'store' }: SettingsM
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-4">
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Input
-                value={newDomainName}
-                onChange={(e) => setNewDomainName(e.target.value)}
-                placeholder={t.domainPlaceholder}
-                onKeyDown={(e) => e.key === 'Enter' && handleAddDomain()}
-              />
-            </div>
-            <Button onClick={handleAddDomain} className="liquid-button">
-              <Plus className="w-4 h-4 mr-2" />
-              {t.addDomain}
-            </Button>
-          </div>
-
-          <div className="space-y-3">
-            <h3 className="font-medium">{t.activeDomains}</h3>
-            {domains.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8 bg-muted/30 rounded-lg">
-                {language === 'en' ? 'No domains added yet' : 'Aucun domaine ajouté'}
-              </p>
-            ) : (
-              domains.map((domain) => (
-                <div
-                  key={domain.id}
-                  className="flex items-center justify-between p-4 bg-muted/30 rounded-lg"
-                >
+          <div className="space-y-2">
+            <Label htmlFor="domainName">{t.domainName}</Label>
+            <div className="space-y-2">
+              {!isEditingDomain ? (
+                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
                   <div className="flex items-center gap-3">
                     <Globe className="w-5 h-5 text-primary" />
                     <div>
-                      <p className="font-medium">{domain.name}</p>
+                      <p className="font-medium">{domainName}</p>
                       <p className="text-xs text-muted-foreground">
-                        {domain.isActive
-                          ? language === 'en'
-                            ? 'Active'
-                            : 'Actif'
-                          : language === 'en'
-                            ? 'Inactive'
-                            : 'Inactif'}
+                        {language === 'en' ? 'Current domain' : 'Domaine actuel'}
                       </p>
                     </div>
                   </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setIsEditingDomain(true)}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <Input
+                    id="domainName"
+                    value={domainName}
+                    onChange={(e) => {
+                      // Only allow lowercase letters, numbers, and hyphens
+                      const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                      setDomainName(value);
+                      setDomainError(null);
+                    }}
+                    placeholder={t.domainPlaceholder}
+                    className={domainError ? 'border-red-500' : ''}
+                  />
+                  {domainError && (
+                    <p className="text-sm text-red-500">{domainError}</p>
+                  )}
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="sm">
-                      <Edit className="w-4 h-4" />
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setIsEditingDomain(false);
+                        setDomainError(null);
+                      }}
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      {t.cancel}
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDeleteDomain(domain.id)}>
-                      <Trash2 className="w-4 h-4 text-destructive" />
+                    <Button 
+                      size="sm"
+                      onClick={handleSaveDomain}
+                      className="liquid-button"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      {t.save}
                     </Button>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        <Separator />
-
-        <div className="flex gap-3 justify-end">
-          <Button variant="outline" onClick={handleCancel}>
-            <X className="w-4 h-4 mr-2" />
-            {t.cancel}
-          </Button>
-          <Button onClick={handleSave} className="liquid-button">
-            <Save className="w-4 h-4 mr-2" />
-            {t.save}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderPaymentSettings = () => (
-    <Card className="liquid-card no-hover border-0">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle>{t.payment}</CardTitle>
-            <CardDescription>
-              {language === 'en'
-                ? 'Configure payment gateways and currency settings'
-                : 'Configurez les passerelles de paiement et les devises'}
-            </CardDescription>
-          </div>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="ios-surface border border-border/50 max-w-xs shadow-lg">
-                <p className="text-foreground">{t.paymentTooltip}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="paymentGateway">{t.paymentGateway}</Label>
-          <Select value={paymentGateway} onValueChange={setPaymentGateway}>
-            <SelectTrigger id="paymentGateway">
-              <SelectValue placeholder={t.selectGateway} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="stripe">Stripe</SelectItem>
-              <SelectItem value="paypal">PayPal</SelectItem>
-              <SelectItem value="square">Square</SelectItem>
-              <SelectItem value="authorize">Authorize.net</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="apiKey">{t.apiKey}</Label>
-          <Input
-            id="apiKey"
-            type="password"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder={t.apiKeyPlaceholder}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="secretKey">{t.secretKey}</Label>
-          <Input
-            id="secretKey"
-            type="password"
-            value={secretKey}
-            onChange={(e) => setSecretKey(e.target.value)}
-            placeholder={t.secretKeyPlaceholder}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="currency">{t.currency}</Label>
-          <Select value={currency} onValueChange={setCurrency}>
-            <SelectTrigger id="currency">
-              <SelectValue placeholder={t.selectCurrency} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="usd">USD - US Dollar</SelectItem>
-              <SelectItem value="eur">EUR - Euro</SelectItem>
-              <SelectItem value="gbp">GBP - British Pound</SelectItem>
-              <SelectItem value="cad">CAD - Canadian Dollar</SelectItem>
-              <SelectItem value="aud">AUD - Australian Dollar</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <Separator />
-
-        <div className="flex gap-3 justify-end">
-          <Button variant="outline" onClick={handleCancel}>
-            <X className="w-4 h-4 mr-2" />
-            {t.cancel}
-          </Button>
-          <Button onClick={handleSave} className="liquid-button">
-            <Save className="w-4 h-4 mr-2" />
-            {t.save}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderShippingSettings = () => (
-    <Card className="liquid-card no-hover border-0">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle>{t.shipping}</CardTitle>
-            <CardDescription>
-              {language === 'en'
-                ? 'Configure shipping providers and rates'
-                : 'Configurez les fournisseurs et tarifs de livraison'}
-            </CardDescription>
-          </div>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="ios-surface border border-border/50 max-w-xs shadow-lg">
-                <p className="text-foreground">{t.shippingTooltip}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="shippingProvider">{t.shippingProvider}</Label>
-          <Select value={shippingProvider} onValueChange={setShippingProvider}>
-            <SelectTrigger id="shippingProvider">
-              <SelectValue placeholder={t.selectProvider} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="fedex">FedEx</SelectItem>
-              <SelectItem value="ups">UPS</SelectItem>
-              <SelectItem value="usps">USPS</SelectItem>
-              <SelectItem value="dhl">DHL</SelectItem>
-              <SelectItem value="custom">Custom Provider</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="flatRate">{t.flatRate}</Label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              $
-            </span>
-            <Input
-              id="flatRate"
-              type="number"
-              step="0.01"
-              value={flatRate}
-              onChange={(e) => setFlatRate(e.target.value)}
-              placeholder={t.flatRatePlaceholder}
-              className="pl-8"
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-          <div className="space-y-0.5">
-            <Label htmlFor="freeShipping" className="cursor-pointer">
-              {t.enableFreeShipping}
-            </Label>
-            <p className="text-sm text-muted-foreground">{t.freeShippingLabel}</p>
-          </div>
-          <Switch
-            id="freeShipping"
-            checked={enableFreeShipping}
-            onCheckedChange={setEnableFreeShipping}
-          />
-        </div>
-
-        <Separator />
-
-        <div className="flex gap-3 justify-end">
-          <Button variant="outline" onClick={handleCancel}>
-            <X className="w-4 h-4 mr-2" />
-            {t.cancel}
-          </Button>
-          <Button onClick={handleSave} className="liquid-button">
-            <Save className="w-4 h-4 mr-2" />
-            {t.save}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const renderNotificationSettings = () => (
-    <Card className="liquid-card no-hover border-0">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle>{t.notifications}</CardTitle>
-            <CardDescription>
-              {language === 'en'
-                ? 'Manage notification preferences and events'
-                : 'Gérez les préférences et événements de notification'}
-            </CardDescription>
-          </div>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="ios-surface border border-border/50 max-w-xs shadow-lg">
-                <p className="text-foreground">{t.notificationsTooltip}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-          <div className="space-y-0.5">
-            <Label htmlFor="emailNotif" className="cursor-pointer">
-              {t.emailNotifications}
-            </Label>
-            <p className="text-sm text-muted-foreground">{t.emailNotificationsLabel}</p>
-          </div>
-          <Switch
-            id="emailNotif"
-            checked={emailNotifications}
-            onCheckedChange={setEmailNotifications}
-          />
-        </div>
-
-        <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-          <div className="space-y-0.5">
-            <Label htmlFor="smsNotif" className="cursor-pointer">
-              {t.smsNotifications}
-            </Label>
-            <p className="text-sm text-muted-foreground">{t.smsNotificationsLabel}</p>
-          </div>
-          <Switch id="smsNotif" checked={smsNotifications} onCheckedChange={setSmsNotifications} />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="senderEmail">{t.senderEmail}</Label>
-          <Input
-            id="senderEmail"
-            type="email"
-            value={senderEmail}
-            onChange={(e) => setSenderEmail(e.target.value)}
-            placeholder={t.senderEmailPlaceholder}
-          />
-        </div>
-
-        <Separator />
-
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-medium mb-1">{t.notificationEvents}</h3>
-            <p className="text-sm text-muted-foreground">{t.notificationEventsDesc}</p>
+              )}
+            </div>
           </div>
 
-          <div className="space-y-3 border rounded-lg p-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="newOrder"
-                checked={notificationEvents.newOrder}
-                onCheckedChange={(checked) =>
-                  setNotificationEvents({ ...notificationEvents, newOrder: checked as boolean })
-                }
-              />
-              <Label htmlFor="newOrder" className="cursor-pointer">
-                {t.newOrder}
-              </Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="paymentReceived"
-                checked={notificationEvents.paymentReceived}
-                onCheckedChange={(checked) =>
-                  setNotificationEvents({
-                    ...notificationEvents,
-                    paymentReceived: checked as boolean,
-                  })
-                }
-              />
-              <Label htmlFor="paymentReceived" className="cursor-pointer">
-                {t.paymentReceived}
-              </Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="orderShipped"
-                checked={notificationEvents.orderShipped}
-                onCheckedChange={(checked) =>
-                  setNotificationEvents({ ...notificationEvents, orderShipped: checked as boolean })
-                }
-              />
-              <Label htmlFor="orderShipped" className="cursor-pointer">
-                {t.orderShipped}
-              </Label>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="productAdded"
-                checked={notificationEvents.productAdded}
-                onCheckedChange={(checked) =>
-                  setNotificationEvents({ ...notificationEvents, productAdded: checked as boolean })
-                }
-              />
-              <Label htmlFor="productAdded" className="cursor-pointer">
-                {t.productAdded}
-              </Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="productUpdated"
-                checked={notificationEvents.productUpdated}
-                onCheckedChange={(checked) =>
-                  setNotificationEvents({
-                    ...notificationEvents,
-                    productUpdated: checked as boolean,
-                  })
-                }
-              />
-              <Label htmlFor="productUpdated" className="cursor-pointer">
-                {t.productUpdated}
-              </Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="stockChanged"
-                checked={notificationEvents.stockChanged}
-                onCheckedChange={(checked) =>
-                  setNotificationEvents({ ...notificationEvents, stockChanged: checked as boolean })
-                }
-              />
-              <Label htmlFor="stockChanged" className="cursor-pointer">
-                {t.stockChanged}
-              </Label>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="newCustomer"
-                checked={notificationEvents.newCustomer}
-                onCheckedChange={(checked) =>
-                  setNotificationEvents({ ...notificationEvents, newCustomer: checked as boolean })
-                }
-              />
-              <Label htmlFor="newCustomer" className="cursor-pointer">
-                {t.newCustomer}
-              </Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="customerReview"
-                checked={notificationEvents.customerReview}
-                onCheckedChange={(checked) =>
-                  setNotificationEvents({
-                    ...notificationEvents,
-                    customerReview: checked as boolean,
-                  })
-                }
-              />
-              <Label htmlFor="customerReview" className="cursor-pointer">
-                {t.customerReview}
-              </Label>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="categoryAdded"
-                checked={notificationEvents.categoryAdded}
-                onCheckedChange={(checked) =>
-                  setNotificationEvents({
-                    ...notificationEvents,
-                    categoryAdded: checked as boolean,
-                  })
-                }
-              />
-              <Label htmlFor="categoryAdded" className="cursor-pointer">
-                {t.categoryAdded}
-              </Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="categoryUpdated"
-                checked={notificationEvents.categoryUpdated}
-                onCheckedChange={(checked) =>
-                  setNotificationEvents({
-                    ...notificationEvents,
-                    categoryUpdated: checked as boolean,
-                  })
-                }
-              />
-              <Label htmlFor="categoryUpdated" className="cursor-pointer">
-                {t.categoryUpdated}
-              </Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="promotionCreated"
-                checked={notificationEvents.promotionCreated}
-                onCheckedChange={(checked) =>
-                  setNotificationEvents({
-                    ...notificationEvents,
-                    promotionCreated: checked as boolean,
-                  })
-                }
-              />
-              <Label htmlFor="promotionCreated" className="cursor-pointer">
-                {t.promotionCreated}
-              </Label>
+          <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Info className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-muted-foreground">
+                {t.domainNote}
+                <span className="font-mono font-medium">/{domainName}</span>
+              </p>
             </div>
           </div>
         </div>
@@ -916,10 +449,6 @@ export function SettingsModule({ language, initialSection = 'store' }: SettingsM
           <Button variant="outline" onClick={handleCancel}>
             <X className="w-4 h-4 mr-2" />
             {t.cancel}
-          </Button>
-          <Button onClick={handleSave} className="liquid-button">
-            <Save className="w-4 h-4 mr-2" />
-            {t.save}
           </Button>
         </div>
       </CardContent>
@@ -933,12 +462,6 @@ export function SettingsModule({ language, initialSection = 'store' }: SettingsM
         return renderStoreInformation();
       case 'domains':
         return renderDomains();
-      case 'payment':
-        return renderPaymentSettings();
-      case 'shipping':
-        return renderShippingSettings();
-      case 'notifications':
-        return renderNotificationSettings();
       default:
         return renderStoreInformation();
     }
