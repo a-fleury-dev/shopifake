@@ -158,3 +158,4 @@ Vérifiez que le bucket a été créé :
 ```bash
 docker-compose logs minio-init
 ```
+

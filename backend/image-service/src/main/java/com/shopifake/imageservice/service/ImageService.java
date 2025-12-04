@@ -242,6 +242,8 @@ public class ImageService {
                             "VARIANT_IMAGE requires both productId and variantId");
                 }
                 break;
+            default:
+                throw new IllegalArgumentException("Unknown entity type: " + entityType);
         }
     }
 

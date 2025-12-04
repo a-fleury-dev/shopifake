@@ -1,0 +1,16 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    clean-disabled: false
+
+logging:
+  level:
+    org.testcontainers: INFO
+    com.shopifake.imageservice: DEBUG
+
