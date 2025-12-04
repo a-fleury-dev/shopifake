@@ -27,7 +27,7 @@ class AuthControllerTest {
         // A tiny test stub subclass to avoid hitting real Keycloak/HTTP in unit tests
         static class StubAuthService extends AuthService {
                 StubAuthService() {
-                        super(null);
+                        super(null, null);
                 }
 
                 // We'll override methods in each test by creating anonymous subclasses
