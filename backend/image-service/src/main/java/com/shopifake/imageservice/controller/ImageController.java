@@ -18,7 +18,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -41,7 +47,8 @@ public class ImageController {
             description = "Upload a store banner image to MinIO and save metadata. Only one banner per store."
     )
     @ApiResponse(responseCode = "200", description = "Banner uploaded successfully")
-    @ApiResponse(responseCode = "400", description = "Invalid file", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Invalid file",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ResponseEntity<UploadResponse> uploadStoreBanner(
             @Parameter(description = "Image file to upload") @RequestParam("file") MultipartFile file,
             @Parameter(description = "Store ID") @RequestParam("storeId") String storeId
@@ -71,7 +78,8 @@ public class ImageController {
             description = "Upload an image for the store's blog. Each store has one blog."
     )
     @ApiResponse(responseCode = "200", description = "Blog image uploaded successfully")
-    @ApiResponse(responseCode = "400", description = "Invalid file", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Invalid file",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ResponseEntity<UploadResponse> uploadBlogImage(
             @Parameter(description = "Image file to upload") @RequestParam("file") MultipartFile file,
             @Parameter(description = "Store ID") @RequestParam("storeId") String storeId
@@ -98,16 +106,19 @@ public class ImageController {
     @PostMapping(value = "/upload/variant-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Upload a product variant image",
-            description = "Upload an image for a product variant. Multiple images can be uploaded per variant with display order."
+            description = "Upload an image for a product variant. "
+                    + "Multiple images can be uploaded per variant with display order."
     )
     @ApiResponse(responseCode = "200", description = "Variant image uploaded successfully")
-    @ApiResponse(responseCode = "400", description = "Invalid file or missing parameters", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Invalid file or missing parameters",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public ResponseEntity<UploadResponse> uploadVariantImage(
             @Parameter(description = "Image file to upload") @RequestParam("file") MultipartFile file,
             @Parameter(description = "Store ID") @RequestParam("storeId") String storeId,
             @Parameter(description = "Product ID") @RequestParam("productId") String productId,
             @Parameter(description = "Variant ID") @RequestParam("variantId") String variantId,
-            @Parameter(description = "Display order (0 = primary image)") @RequestParam(value = "displayOrder", required = false, defaultValue = "0") Integer displayOrder
+            @Parameter(description = "Display order (0 = primary image)")
+            @RequestParam(value = "displayOrder", required = false, defaultValue = "0") Integer displayOrder
     ) {
         try {
             UploadResponse response = imageService.uploadImage(

@@ -53,6 +53,26 @@ rebuild: ## Reconstruire et redémarrer tous les services
 	$(DOCKER_COMPOSE) build --no-cache
 	$(DOCKER_COMPOSE) up -d
 
+# Code quality commands
+checkstyle: ## Vérifier le style du code avec Checkstyle
+	./mvnw checkstyle:check
+
+checkstyle-report: ## Générer un rapport HTML Checkstyle
+	./mvnw checkstyle:checkstyle
+	@echo "Rapport disponible dans : target/site/checkstyle.html"
+
+quality: ## Vérifier la qualité du code (Checkstyle)
+	./mvnw checkstyle:check
+
+validate: ## Valider le projet (inclut Checkstyle)
+	./mvnw validate
+
+test-build: ## Tester le build complet (inclut Checkstyle + Tests)
+	./mvnw clean verify
+	$(DOCKER_COMPOSE) down
+	$(DOCKER_COMPOSE) build --no-cache
+	$(DOCKER_COMPOSE) up -d
+
 dev: ## Démarrer l'environnement de développement (PostgreSQL et MinIO seulement)
 	$(DOCKER_COMPOSE) up -d postgres minio
 
