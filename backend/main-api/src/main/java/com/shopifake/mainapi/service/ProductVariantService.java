@@ -101,6 +101,7 @@ public class ProductVariantService {
         // Créer le variant
         ProductVariant variant = new ProductVariant();
         variant.setProductId(request.productId());
+        variant.setShopId(request.shopId());
         variant.setSku(request.sku());
         variant.setPrice(request.price());
         variant.setStock(request.stock());
