@@ -98,6 +98,7 @@ public class ProductService {
 
         Product product = new Product();
         product.setCategoryId(request.categoryId());
+        product.setShopId(request.shopId());
         product.setName(request.name());
         product.setSlug(slug);
         product.setDescription(request.description());

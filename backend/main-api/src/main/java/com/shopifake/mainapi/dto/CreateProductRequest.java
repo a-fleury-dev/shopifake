@@ -10,6 +10,9 @@ public record CreateProductRequest(
         @NotNull(message = "L'ID de catégorie est obligatoire")
         Long categoryId,
 
+        @NotNull(message = "L'ID de boutique est obligatoire")
+        Long shopId,
+
         @NotBlank(message = "Le nom du produit est obligatoire")
         @Size(max = 255, message = "Le nom ne peut pas dépasser 255 caractères")
         String name,
