@@ -1,0 +1,48 @@
+name: companion
+services:
+  keycloak-db:
+    image: postgres:latest
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+      MAIN_DB: ${MAIN_DB}
+      TEST_DB: ${TEST_DB}
+    volumes:
+      - keycloak_pgdata:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    networks:
+      - companion_network
+
+  keycloak:
+    build: .
+    container_name: keycloak-service
+    depends_on:
+      - keycloak-db
+    environment:
+      KEYCLOAK_MODE: ${KEYCLOAK_MODE:-dev}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_BACKCHANNEL: false
+
+      KC_DB_URL: jdbc:postgresql://keycloak-db:${POSTGRES_PORT}/${CURRENT_DB}
+      KC_DB: postgres
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      #Prod only
+      #KC_HOSTNAME: ${KC_HOSTNAME}
+      #KC_HTTPS_CERTIFICATE_FILE: /etc/x509/https/tls.crt
+      #KC_HTTPS_CERTIFICATE_KEY_FILE: /etc/x509/https/tls.key
+    ports:
+      - "${KC_PORT:-8080}:8080"
+    volumes:
+      - ./keycloak-data:/opt/keycloak/data
+    networks:
+      - companion_network
+
+volumes:
+  keycloak_pgdata:
