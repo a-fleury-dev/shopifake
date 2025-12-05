@@ -106,10 +106,46 @@ services:
       - shopifake-network
     restart: unless-stopped
 
+  # Qdrant Vector Database for chatbot
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - shopifake-network
+    restart: unless-stopped
+
+  # Chatbot Service
+  chatbot-service:
+    build:
+      context: ./chatbot-service
+      dockerfile: Dockerfile
+    container_name: chatbot-service
+    ports:
+      - "5003:8080"
+    environment:
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: products
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_EMBED_MODEL: text-embedding-3-small
+      OPENAI_CHAT_MODEL: gpt-4o-mini
+    env_file:
+      - ./chatbot-service/.env
+    depends_on:
+      - qdrant
+    networks:
+      - shopifake-network
+    restart: unless-stopped
+
 volumes:
   postgres_main_data:
   postgres_image_data:
   minio_data:
+  qdrant_data:
 
 networks:
   shopifake-network:

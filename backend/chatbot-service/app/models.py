@@ -42,12 +42,18 @@ class IndexProductVariantsRequest(BaseModel):
 class SearchRequest(BaseModel):
     query: str
     top_k: int = 5
+    min_score: Optional[float] = 0.3  # Minimum similarity score (0.0 to 1.0) - lowered default
+    score_threshold_ratio: Optional[float] = 0.7  # Only return results within X% of top score - lowered
+    category_ids: Optional[List[int]] = None  # Optional category filter
 
 
 class ShopSearchRequest(BaseModel):
     query: str
     shop_id: int
     top_k: int = 5
+    min_score: Optional[float] = 0.3  # Lowered default
+    score_threshold_ratio: Optional[float] = 0.7  # Lowered
+    category_ids: Optional[List[int]] = None
 
 
 class SearchResult(BaseModel):

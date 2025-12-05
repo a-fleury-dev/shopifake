@@ -9,7 +9,7 @@
     "is_active": true,
     "product_name": "Organic cotton t-shirt (unisex)",
     "product_slug": "organic-cotton-tshirt-unisex",
-    "product_description": "Soft organic cotton, 180gsm, breathable fabric; neutral colors.",
+    "product_description": "Soft organic cotton, 180gsm, breathable fabric; neutral colors. Perfect for everyday wear.",
     "category_id": 1,
     "attributes": {
       "color": "black",
@@ -26,7 +26,7 @@
     "is_active": true,
     "product_name": "Organic cotton t-shirt (unisex)",
     "product_slug": "organic-cotton-tshirt-unisex",
-    "product_description": "Soft organic cotton, 180gsm, breathable fabric; neutral colors.",
+    "product_description": "Soft organic cotton, 180gsm, breathable fabric; neutral colors. Perfect for everyday wear.",
     "category_id": 1,
     "attributes": {
       "color": "white",
@@ -43,7 +43,7 @@
     "is_active": true,
     "product_name": "Lightweight running shoes",
     "product_slug": "lightweight-running-shoes",
-    "product_description": "Dynamic cushioning, urban trail friendly, mesh upper for airflow.",
+    "product_description": "Dynamic cushioning, urban trail friendly, mesh upper for airflow. Ideal for daily running and training.",
     "category_id": 2,
     "attributes": {
       "color": "blue",
@@ -60,7 +60,7 @@
     "is_active": true,
     "product_name": "Lightweight running shoes",
     "product_slug": "lightweight-running-shoes",
-    "product_description": "Dynamic cushioning, urban trail friendly, mesh upper for airflow.",
+    "product_description": "Dynamic cushioning, urban trail friendly, mesh upper for airflow. Ideal for daily running and training.",
     "category_id": 2,
     "attributes": {
       "color": "black",
@@ -77,7 +77,7 @@
     "is_active": true,
     "product_name": "Classic adjustable cap",
     "product_slug": "classic-adjustable-cap",
-    "product_description": "Adjustable strap, breathable panels, curved visor.",
+    "product_description": "Adjustable strap, breathable panels, curved visor. Cotton baseball style cap.",
     "category_id": 3,
     "attributes": {
       "color": "black",
@@ -94,7 +94,7 @@
     "is_active": true,
     "product_name": "Organic cotton t-shirt (slim fit)",
     "product_slug": "organic-cotton-tshirt-slim",
-    "product_description": "Slim fit tee made from 100% certified organic cotton, soft touch.",
+    "product_description": "Slim fit tee made from 100% certified organic cotton, soft touch. Modern fitted silhouette.",
     "category_id": 1,
     "attributes": {
       "color": "grey",
@@ -111,7 +111,7 @@
     "is_active": true,
     "product_name": "Organic cotton crew neck t-shirt",
     "product_slug": "organic-cotton-crew-neck",
-    "product_description": "Crew neck, minimal branding, sustainably sourced organic cotton.",
+    "product_description": "Crew neck, minimal branding, sustainably sourced organic cotton. Classic casual style.",
     "category_id": 1,
     "attributes": {
       "color": "navy",
@@ -128,7 +128,7 @@
     "is_active": true,
     "product_name": "Organic cotton hoodie",
     "product_slug": "organic-cotton-hoodie",
-    "product_description": "Mid-weight hoodie, brushed inside, 85% organic cotton, 15% recycled poly.",
+    "product_description": "Mid-weight hoodie, brushed inside, 85% organic cotton, 15% recycled poly. Warm and comfortable.",
     "category_id": 1,
     "attributes": {
       "color": "black",
@@ -145,7 +145,7 @@
     "is_active": true,
     "product_name": "Performance trail running shoes",
     "product_slug": "performance-trail-running-shoes",
-    "product_description": "Aggressive outsole grip, responsive foam, moisture-wicking lining.",
+    "product_description": "Aggressive outsole grip, responsive foam, moisture-wicking lining. Built for off-road adventures.",
     "category_id": 2,
     "attributes": {
       "color": "green",
@@ -162,11 +162,147 @@
     "is_active": true,
     "product_name": "Breathable running socks (pack of 3)",
     "product_slug": "breathable-running-socks-pack",
-    "product_description": "Arch support, anti-blister zones, moisture control fibers.",
+    "product_description": "Arch support, anti-blister zones, moisture control fibers. Essential running gear.",
     "category_id": 2,
     "attributes": {
       "color": "black",
       "size": "M"
+    }
+  },
+  {
+    "id": 11,
+    "product_id": 9,
+    "shop_id": 1,
+    "sku": "PHONE-X15-BLK-128",
+    "price": "799.00",
+    "stock": 25,
+    "is_active": true,
+    "product_name": "Smartphone X15 Pro",
+    "product_slug": "smartphone-x15-pro",
+    "product_description": "6.7 inch OLED display, 128GB storage, 5G enabled, triple camera system. Latest flagship processor.",
+    "category_id": 4,
+    "attributes": {
+      "color": "black",
+      "storage": "128GB"
+    }
+  },
+  {
+    "id": 12,
+    "product_id": 9,
+    "shop_id": 1,
+    "sku": "PHONE-X15-SLV-256",
+    "price": "899.00",
+    "stock": 15,
+    "is_active": true,
+    "product_name": "Smartphone X15 Pro",
+    "product_slug": "smartphone-x15-pro",
+    "product_description": "6.7 inch OLED display, 256GB storage, 5G enabled, triple camera system. Latest flagship processor.",
+    "category_id": 4,
+    "attributes": {
+      "color": "silver",
+      "storage": "256GB"
+    }
+  },
+  {
+    "id": 13,
+    "product_id": 10,
+    "shop_id": 1,
+    "sku": "TABLET-PRO-GRY-11",
+    "price": "599.00",
+    "stock": 20,
+    "is_active": true,
+    "product_name": "Tablet Pro 11",
+    "product_slug": "tablet-pro-11",
+    "product_description": "11 inch display, stylus support, 8GB RAM, perfect for creative work and productivity. All-day battery.",
+    "category_id": 4,
+    "attributes": {
+      "color": "grey",
+      "screen_size": "11 inch"
+    }
+  },
+  {
+    "id": 14,
+    "product_id": 11,
+    "shop_id": 1,
+    "sku": "HEADPHONE-NC-BLK",
+    "price": "249.00",
+    "stock": 45,
+    "is_active": true,
+    "product_name": "Wireless Noise-Cancelling Headphones",
+    "product_slug": "wireless-nc-headphones",
+    "product_description": "Active noise cancellation, 30-hour battery life, premium sound quality. Bluetooth 5.0 with multipoint.",
+    "category_id": 4,
+    "attributes": {
+      "color": "black",
+      "type": "over-ear"
+    }
+  },
+  {
+    "id": 15,
+    "product_id": 12,
+    "shop_id": 1,
+    "sku": "YOGA-MAT-PUR-6MM",
+    "price": "39.90",
+    "stock": 60,
+    "is_active": true,
+    "product_name": "Premium Yoga Mat",
+    "product_slug": "premium-yoga-mat",
+    "product_description": "6mm thick, non-slip surface, eco-friendly TPE material. Includes carrying strap for easy transport.",
+    "category_id": 5,
+    "attributes": {
+      "color": "purple",
+      "thickness": "6mm"
+    }
+  },
+  {
+    "id": 16,
+    "product_id": 13,
+    "shop_id": 1,
+    "sku": "DUMBBELL-SET-10KG",
+    "price": "79.00",
+    "stock": 35,
+    "is_active": true,
+    "product_name": "Adjustable Dumbbell Set",
+    "product_slug": "adjustable-dumbbell-set",
+    "product_description": "10kg per dumbbell, quick-adjust weight system, compact design. Perfect for home workouts.",
+    "category_id": 5,
+    "attributes": {
+      "weight": "10kg",
+      "type": "adjustable"
+    }
+  },
+  {
+    "id": 17,
+    "product_id": 14,
+    "shop_id": 2,
+    "sku": "LAPTOP-PRO-SLV-16",
+    "price": "1899.00",
+    "stock": 10,
+    "is_active": true,
+    "product_name": "Professional Laptop 16",
+    "product_slug": "professional-laptop-16",
+    "product_description": "16 inch 4K display, 32GB RAM, 1TB SSD, dedicated graphics. High-performance for creative professionals.",
+    "category_id": 4,
+    "attributes": {
+      "color": "silver",
+      "screen_size": "16 inch"
+    }
+  },
+  {
+    "id": 18,
+    "product_id": 15,
+    "shop_id": 2,
+    "sku": "SMARTWATCH-BLK-GPS",
+    "price": "349.00",
+    "stock": 28,
+    "is_active": true,
+    "product_name": "Fitness Smartwatch GPS",
+    "product_slug": "fitness-smartwatch-gps",
+    "product_description": "Built-in GPS, heart rate monitor, sleep tracking, 7-day battery. Water-resistant for swimming.",
+    "category_id": 4,
+    "attributes": {
+      "color": "black",
+      "features": "GPS"
     }
   }
 ]
