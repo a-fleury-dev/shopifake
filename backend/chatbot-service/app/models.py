@@ -16,6 +16,7 @@ class ProductVariant(BaseModel):
     ProductVariant for chatbot indexing and search.
     Combines variant data with parent product information for semantic search.
     """
+
     # Variant fields
     id: int  # Variant ID from database
     product_id: int
@@ -24,13 +25,13 @@ class ProductVariant(BaseModel):
     price: Decimal
     stock: int = 0
     is_active: bool = True
-    
+
     # Product fields (for semantic search)
     product_name: str
     product_slug: str
     product_description: Optional[str] = None
     category_id: int
-    
+
     # Variant attributes (e.g., {"color": "blue", "size": "M"})
     attributes: Dict[str, str] = Field(default_factory=dict)
 
@@ -42,8 +43,12 @@ class IndexProductVariantsRequest(BaseModel):
 class SearchRequest(BaseModel):
     query: str
     top_k: int = 5
-    min_score: Optional[float] = 0.3  # Minimum similarity score (0.0 to 1.0) - lowered default
-    score_threshold_ratio: Optional[float] = 0.7  # Only return results within X% of top score - lowered
+    min_score: Optional[float] = (
+        0.3  # Minimum similarity score (0.0 to 1.0) - lowered default
+    )
+    score_threshold_ratio: Optional[float] = (
+        0.7  # Only return results within X% of top score - lowered
+    )
     category_ids: Optional[List[int]] = None  # Optional category filter
 
 

@@ -1,6 +1,14 @@
-from typing import List
+from typing import List, Optional
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue
+from qdrant_client.models import (
+    Distance,
+    VectorParams,
+    PointStruct,
+    Filter,
+    FieldCondition,
+    MatchValue,
+    MatchAny,
+)
 import logging
 
 from .config import QDRANT_URL, QDRANT_COLLECTION
@@ -32,16 +40,13 @@ def product_variant_text(variant: ProductVariant) -> str:
     Excludes: IDs, SKU, price, stock, slug, is_active, timestamps
     as they don't contribute to semantic similarity.
     """
-    parts = [
-        variant.product_name or "",
-        variant.product_description or ""
-    ]
-    
+    parts = [variant.product_name or "", variant.product_description or ""]
+
     # Add variant attributes (e.g., "color: blue", "size: M")
     if variant.attributes:
         attrs_text = ", ".join([f"{k}: {v}" for k, v in variant.attributes.items()])
         parts.append(attrs_text)
-    
+
     return "\n".join([s for s in parts if s]).strip()
 
 
@@ -75,25 +80,25 @@ def upsert_product_variants(items: List[ProductVariant]) -> int:
 
 
 def query_similar(
-    query_text: str, 
-    top_k: int = 5, 
-    min_score: float = 0.6,
-    score_threshold_ratio: float = 0.8,
-    category_ids: List[int] = None
+    query_text: str,
+    limit: int = 5,
+    min_score: float = 0.3,
+    score_threshold_ratio: float = 0.7,
+    category_ids: Optional[List[int]] = None,
 ) -> List[SearchResult]:
     """
     Search for similar product variants across all shops.
-    
+
     Args:
         query_text: Search query
-        top_k: Maximum number of results
-        min_score: Minimum similarity score (0.0-1.0). Default 0.6
-        score_threshold_ratio: Only return results within this ratio of top score. Default 0.8
+        limit: Maximum number of results
+        min_score: Minimum similarity score (0.0-1.0). Default 0.3
+        score_threshold_ratio: Only return results within this ratio of top score. Default 0.7
         category_ids: Optional list of category IDs to filter by
     """
     ensure_collection()
     q_vec = embed(query_text)
-    limit = max(1, min(top_k, 50))
+    search_limit = max(1, min(limit, 50))
 
     # Build filter if category_ids provided
     query_filter = None
@@ -102,8 +107,7 @@ def query_similar(
             must=[
                 FieldCondition(
                     key="category_id",
-                    match=MatchValue(value=category_ids) if len(category_ids) == 1 
-                    else {"any": category_ids}
+                    match=MatchAny(any=category_ids),
                 )
             ]
         )
@@ -113,7 +117,7 @@ def query_similar(
             collection_name=QDRANT_COLLECTION,
             query_vector=q_vec,
             query_filter=query_filter,
-            limit=limit,
+            limit=search_limit,
             with_payload=True,
         )
         points = raw
@@ -122,44 +126,45 @@ def query_similar(
             collection_name=QDRANT_COLLECTION,
             query=q_vec,
             query_filter=query_filter,
-            limit=limit,
+            limit=search_limit,
             with_payload=True,
         )
         points = raw.points
 
     results: List[SearchResult] = []
     top_score = None
-    
+
     for r in points:
         payload = getattr(r, "payload", {}) or {}
         score = getattr(r, "score", None)
-        
+
         if score is None:
             continue
-            
+
         score_float = float(score)
-        
+
         # Track top score for adaptive threshold
         if top_score is None:
             top_score = score_float
-        
+
         # Apply minimum score filter
         if score_float < min_score:
             continue
-        
+
         # Apply adaptive threshold (only keep results within X% of top score)
         if score_threshold_ratio and top_score:
             threshold = top_score * score_threshold_ratio
             if score_float < threshold:
                 continue
-        
+
         desc = (payload.get("product_description") or "")[:220]
-        
+
         # Convert price string back to Decimal
         from decimal import Decimal
+
         price_str = payload.get("price")
         price = Decimal(price_str) if price_str else None
-        
+
         results.append(
             SearchResult(
                 id=payload.get("variant_id", getattr(r, "id", 0)),
@@ -177,55 +182,49 @@ def query_similar(
 
 
 def query_similar_by_shop(
-    query_text: str, 
-    shop_id: int, 
-    top_k: int = 5,
-    min_score: float = 0.6,
-    score_threshold_ratio: float = 0.8,
-    category_ids: List[int] = None
+    query_text: str,
+    shop_id: int,
+    limit: int = 5,
+    min_score: float = 0.3,
+    score_threshold_ratio: float = 0.7,
+    category_ids: Optional[List[int]] = None,
 ) -> List[SearchResult]:
     """
     Search for similar product variants filtered by shop_id.
     Only returns results from the specified shop.
-    
+
     Args:
         query_text: Search query
         shop_id: Filter results to this shop
-        top_k: Maximum number of results
-        min_score: Minimum similarity score (0.0-1.0). Default 0.6
-        score_threshold_ratio: Only return results within this ratio of top score. Default 0.8
+        limit: Maximum number of results
+        min_score: Minimum similarity score (0.0-1.0). Default 0.3
+        score_threshold_ratio: Only return results within this ratio of top score. Default 0.7
         category_ids: Optional list of category IDs to filter by
     """
     ensure_collection()
     q_vec = embed(query_text)
-    limit = max(1, min(top_k, 50))
+    search_limit = max(1, min(limit, 50))
 
     # Build filter conditions
-    filter_conditions = [
-        FieldCondition(
-            key="shop_id",
-            match=MatchValue(value=shop_id)
-        )
-    ]
-    
+    filter_conditions = [FieldCondition(key="shop_id", match=MatchValue(value=shop_id))]
+
     # Add category filter if provided
     if category_ids:
         filter_conditions.append(
             FieldCondition(
                 key="category_id",
-                match=MatchValue(value=category_ids) if len(category_ids) == 1 
-                else {"any": category_ids}
+                match=MatchAny(any=category_ids),
             )
         )
-    
-    shop_filter = Filter(must=filter_conditions)
+
+    shop_filter = Filter(must=filter_conditions)  # type: ignore[arg-type]
 
     if hasattr(qdrant, "search"):
         raw = qdrant.search(
             collection_name=QDRANT_COLLECTION,
             query_vector=q_vec,
             query_filter=shop_filter,
-            limit=limit,
+            limit=search_limit,
             with_payload=True,
         )
         points = raw
@@ -234,44 +233,45 @@ def query_similar_by_shop(
             collection_name=QDRANT_COLLECTION,
             query=q_vec,
             query_filter=shop_filter,
-            limit=limit,
+            limit=search_limit,
             with_payload=True,
         )
         points = raw.points
 
     results: List[SearchResult] = []
     top_score = None
-    
+
     for r in points:
         payload = getattr(r, "payload", {}) or {}
         score = getattr(r, "score", None)
-        
+
         if score is None:
             continue
-            
+
         score_float = float(score)
-        
+
         # Track top score for adaptive threshold
         if top_score is None:
             top_score = score_float
-        
+
         # Apply minimum score filter
         if score_float < min_score:
             continue
-        
+
         # Apply adaptive threshold (only keep results within X% of top score)
         if score_threshold_ratio and top_score:
             threshold = top_score * score_threshold_ratio
             if score_float < threshold:
                 continue
-        
+
         desc = (payload.get("product_description") or "")[:220]
-        
+
         # Convert price string back to Decimal
         from decimal import Decimal
+
         price_str = payload.get("price")
         price = Decimal(price_str) if price_str else None
-        
+
         results.append(
             SearchResult(
                 id=payload.get("variant_id", getattr(r, "id", 0)),

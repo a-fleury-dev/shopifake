@@ -22,13 +22,13 @@ class WebhookProductVariant(BaseModel):
     price: Decimal
     stock: int = 0
     is_active: bool = True
-    
+
     # Product fields
     product_name: str
     product_slug: str
     product_description: Optional[str] = None
     category_id: int
-    
+
     # Variant attributes
     attributes: Dict[str, str] = {}
 
@@ -135,4 +135,8 @@ async def product_variant_webhook(payload: ProductVariantWebhookPayload):
 @router.get("/webhook/health")
 def webhook_health():
     """Health check for webhook endpoint"""
-    return {"status": "ok", "service": "webhook", "endpoints": ["/webhook/product-variant"]}
+    return {
+        "status": "ok",
+        "service": "webhook",
+        "endpoints": ["/webhook/product-variant"],
+    }
