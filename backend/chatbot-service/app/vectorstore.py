@@ -4,7 +4,7 @@ from qdrant_client.models import Distance, VectorParams, PointStruct
 
 from .config import QDRANT_URL, QDRANT_COLLECTION
 from .embeddings import embed
-from .models import Product, SearchResult
+from .models import ProductVariant, SearchResult
 
 
 qdrant = QdrantClient(url=QDRANT_URL)
@@ -21,34 +21,49 @@ def ensure_collection() -> None:
     )
 
 
-def product_text(p: Product) -> str:
+def product_variant_text(variant: ProductVariant) -> str:
     """
-    Generate text for embedding from product data.
-    Only includes semantically meaningful fields (name, description).
-    Excludes: id, shop_id, category_id, slug, is_active, timestamps
+    Generate text for embedding from product variant data.
+    Combines product name, description, and variant attributes.
+    Only includes semantically meaningful fields.
+    Excludes: IDs, SKU, price, stock, slug, is_active, timestamps
     as they don't contribute to semantic similarity.
     """
-    parts = [p.name or "", p.description or ""]
+    parts = [
+        variant.product_name or "",
+        variant.product_description or ""
+    ]
+    
+    # Add variant attributes (e.g., "color: blue", "size: M")
+    if variant.attributes:
+        attrs_text = ", ".join([f"{k}: {v}" for k, v in variant.attributes.items()])
+        parts.append(attrs_text)
+    
     return "\n".join([s for s in parts if s]).strip()
 
 
-def upsert_products(items: List[Product]) -> int:
+def upsert_product_variants(items: List[ProductVariant]) -> int:
     ensure_collection()
     points: List[PointStruct] = []
     for item in items:
-        vec = embed(product_text(item))
+        vec = embed(product_variant_text(item))
         points.append(
             PointStruct(
-                id=item.id,  # Use actual product ID from database
+                id=item.id,  # Use actual variant ID from database
                 vector=vec,
                 payload={
-                    "product_id": item.id,
-                    "name": item.name,
-                    "description": item.description,
+                    "variant_id": item.id,
+                    "product_id": item.product_id,
                     "shop_id": item.shop_id,
-                    "category_id": item.category_id,
-                    "slug": item.slug,
+                    "sku": item.sku,
+                    "price": str(item.price),  # Convert Decimal to string for JSON
+                    "stock": item.stock,
                     "is_active": item.is_active,
+                    "product_name": item.product_name,
+                    "product_slug": item.product_slug,
+                    "product_description": item.product_description,
+                    "category_id": item.category_id,
+                    "attributes": item.attributes,
                 },
             )
         )
@@ -82,12 +97,22 @@ def query_similar(query_text: str, top_k: int = 5) -> List[SearchResult]:
     for r in points:
         payload = getattr(r, "payload", {}) or {}
         score = getattr(r, "score", None)
-        desc = (payload.get("description") or "")[:220]
+        desc = (payload.get("product_description") or "")[:220]
+        
+        # Convert price string back to Decimal
+        from decimal import Decimal
+        price_str = payload.get("price")
+        price = Decimal(price_str) if price_str else None
+        
         results.append(
             SearchResult(
-                id=payload.get("product_id", getattr(r, "id", 0)),
+                id=payload.get("variant_id", getattr(r, "id", 0)),
                 score=float(score) if score is not None else 0.0,
-                name=payload.get("name"),
+                sku=payload.get("sku"),
+                product_name=payload.get("product_name"),
+                price=price,
+                stock=payload.get("stock"),
+                attributes=payload.get("attributes", {}),
                 snippet=desc,
             )
         )

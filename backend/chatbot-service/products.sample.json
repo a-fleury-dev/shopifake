@@ -1,110 +1,172 @@
 [
   {
     "id": 1,
-    "category_id": 1,
+    "product_id": 1,
     "shop_id": 1,
-    "name": "Organic cotton t-shirt (unisex)",
-    "slug": "organic-cotton-tshirt-unisex",
-    "description": "Soft organic cotton, 180gsm, breathable fabric; neutral colors.",
-    "is_active": true
+    "sku": "ORG-TSHIRT-UNI-BLK-M",
+    "price": "19.90",
+    "stock": 50,
+    "is_active": true,
+    "product_name": "Organic cotton t-shirt (unisex)",
+    "product_slug": "organic-cotton-tshirt-unisex",
+    "product_description": "Soft organic cotton, 180gsm, breathable fabric; neutral colors.",
+    "category_id": 1,
+    "attributes": {
+      "color": "black",
+      "size": "M"
+    }
   },
   {
     "id": 2,
-    "category_id": 2,
+    "product_id": 1,
     "shop_id": 1,
-    "name": "Lightweight running shoes",
-    "slug": "lightweight-running-shoes",
-    "description": "Dynamic cushioning, urban trail friendly, mesh upper for airflow.",
-    "is_active": true
+    "sku": "ORG-TSHIRT-UNI-WHT-L",
+    "price": "19.90",
+    "stock": 30,
+    "is_active": true,
+    "product_name": "Organic cotton t-shirt (unisex)",
+    "product_slug": "organic-cotton-tshirt-unisex",
+    "product_description": "Soft organic cotton, 180gsm, breathable fabric; neutral colors.",
+    "category_id": 1,
+    "attributes": {
+      "color": "white",
+      "size": "L"
+    }
   },
   {
     "id": 3,
-    "category_id": 3,
+    "product_id": 2,
     "shop_id": 1,
-    "name": "Classic adjustable cap",
-    "slug": "classic-adjustable-cap",
-    "description": "Adjustable strap, breathable panels, curved visor.",
-    "is_active": true
+    "sku": "RUN-SHOE-BLU-42",
+    "price": "89.00",
+    "stock": 15,
+    "is_active": true,
+    "product_name": "Lightweight running shoes",
+    "product_slug": "lightweight-running-shoes",
+    "product_description": "Dynamic cushioning, urban trail friendly, mesh upper for airflow.",
+    "category_id": 2,
+    "attributes": {
+      "color": "blue",
+      "size": "42"
+    }
   },
   {
     "id": 4,
-    "category_id": 1,
+    "product_id": 2,
     "shop_id": 1,
-    "name": "Organic cotton t-shirt (slim fit)",
-    "slug": "organic-cotton-tshirt-slim",
-    "description": "Slim fit tee made from 100% certified organic cotton, soft touch.",
-    "is_active": true
+    "sku": "RUN-SHOE-BLK-43",
+    "price": "89.00",
+    "stock": 20,
+    "is_active": true,
+    "product_name": "Lightweight running shoes",
+    "product_slug": "lightweight-running-shoes",
+    "product_description": "Dynamic cushioning, urban trail friendly, mesh upper for airflow.",
+    "category_id": 2,
+    "attributes": {
+      "color": "black",
+      "size": "43"
+    }
   },
   {
     "id": 5,
-    "category_id": 1,
+    "product_id": 3,
     "shop_id": 1,
-    "name": "Organic cotton crew neck t-shirt",
-    "slug": "organic-cotton-crew-neck",
-    "description": "Crew neck, minimal branding, sustainably sourced organic cotton.",
-    "is_active": true
+    "sku": "CAP-ADJ-BLK-OS",
+    "price": "12.50",
+    "stock": 100,
+    "is_active": true,
+    "product_name": "Classic adjustable cap",
+    "product_slug": "classic-adjustable-cap",
+    "product_description": "Adjustable strap, breathable panels, curved visor.",
+    "category_id": 3,
+    "attributes": {
+      "color": "black",
+      "size": "one-size"
+    }
   },
   {
     "id": 6,
-    "category_id": 1,
+    "product_id": 4,
     "shop_id": 1,
-    "name": "Organic cotton hoodie",
-    "slug": "organic-cotton-hoodie",
-    "description": "Mid-weight hoodie, brushed inside, 85% organic cotton, 15% recycled poly.",
-    "is_active": true
+    "sku": "ORG-TSHIRT-SLIM-GRY-S",
+    "price": "21.50",
+    "stock": 25,
+    "is_active": true,
+    "product_name": "Organic cotton t-shirt (slim fit)",
+    "product_slug": "organic-cotton-tshirt-slim",
+    "product_description": "Slim fit tee made from 100% certified organic cotton, soft touch.",
+    "category_id": 1,
+    "attributes": {
+      "color": "grey",
+      "size": "S"
+    }
   },
   {
     "id": 7,
-    "category_id": 2,
+    "product_id": 5,
     "shop_id": 1,
-    "name": "Performance trail running shoes",
-    "slug": "performance-trail-running-shoes",
-    "description": "Aggressive outsole grip, responsive foam, moisture-wicking lining.",
-    "is_active": true
+    "sku": "ORG-CREW-NAV-M",
+    "price": "18.90",
+    "stock": 40,
+    "is_active": true,
+    "product_name": "Organic cotton crew neck t-shirt",
+    "product_slug": "organic-cotton-crew-neck",
+    "product_description": "Crew neck, minimal branding, sustainably sourced organic cotton.",
+    "category_id": 1,
+    "attributes": {
+      "color": "navy",
+      "size": "M"
+    }
   },
   {
     "id": 8,
-    "category_id": 2,
+    "product_id": 6,
     "shop_id": 1,
-    "name": "Breathable running socks (pack of 3)",
-    "slug": "breathable-running-socks-pack",
-    "description": "Arch support, anti-blister zones, moisture control fibers.",
-    "is_active": true
+    "sku": "ORG-HOODIE-BLK-L",
+    "price": "49.00",
+    "stock": 18,
+    "is_active": true,
+    "product_name": "Organic cotton hoodie",
+    "product_slug": "organic-cotton-hoodie",
+    "product_description": "Mid-weight hoodie, brushed inside, 85% organic cotton, 15% recycled poly.",
+    "category_id": 1,
+    "attributes": {
+      "color": "black",
+      "size": "L"
+    }
   },
   {
     "id": 9,
-    "category_id": 1,
+    "product_id": 7,
     "shop_id": 1,
-    "name": "Organic cotton graphic t-shirt",
-    "slug": "organic-cotton-graphic-tshirt",
-    "description": "Eco-friendly inks on 100% organic cotton, relaxed fit.",
-    "is_active": true
+    "sku": "TRAIL-SHOE-GRN-41",
+    "price": "119.00",
+    "stock": 12,
+    "is_active": true,
+    "product_name": "Performance trail running shoes",
+    "product_slug": "performance-trail-running-shoes",
+    "product_description": "Aggressive outsole grip, responsive foam, moisture-wicking lining.",
+    "category_id": 2,
+    "attributes": {
+      "color": "green",
+      "size": "41"
+    }
   },
   {
     "id": 10,
-    "category_id": 3,
+    "product_id": 8,
     "shop_id": 1,
-    "name": "Adjustable baseball cap",
-    "slug": "adjustable-baseball-cap",
-    "description": "Classic baseball style, adjustable metal buckle, cotton twill.",
-    "is_active": true
-  },
-  {
-    "id": 11,
-    "category_id": 1,
-    "shop_id": 1,
-    "name": "Organic cotton v-neck t-shirt",
-    "slug": "organic-cotton-vneck",
-    "description": "V-neck cut, light and breathable organic cotton fabric.",
-    "is_active": true
-  },
-  {
-    "id": 12,
+    "sku": "RUN-SOCK-BLK-M",
+    "price": "14.00",
+    "stock": 80,
+    "is_active": true,
+    "product_name": "Breathable running socks (pack of 3)",
+    "product_slug": "breathable-running-socks-pack",
+    "product_description": "Arch support, anti-blister zones, moisture control fibers.",
     "category_id": 2,
-    "shop_id": 1,
-    "name": "Recycled polyester running shorts",
-    "slug": "recycled-polyester-running-shorts",
-    "description": "Lightweight shorts with inner brief and reflective details.",
-    "is_active": true
+    "attributes": {
+      "color": "black",
+      "size": "M"
+    }
   }
 ]

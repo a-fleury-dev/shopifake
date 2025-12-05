@@ -1,5 +1,6 @@
-from typing import List, Optional
-from pydantic import BaseModel
+from typing import List, Optional, Dict
+from pydantic import BaseModel, Field
+from decimal import Decimal
 
 
 class ChatRequest(BaseModel):
@@ -10,18 +11,32 @@ class ChatResponse(BaseModel):
     response: str
 
 
-class Product(BaseModel):
-    id: int  # Product ID from database
-    category_id: int
+class ProductVariant(BaseModel):
+    """
+    ProductVariant for chatbot indexing and search.
+    Combines variant data with parent product information for semantic search.
+    """
+    # Variant fields
+    id: int  # Variant ID from database
+    product_id: int
     shop_id: int
-    name: str
-    slug: str
-    description: Optional[str] = None
+    sku: str
+    price: Decimal
+    stock: int = 0
     is_active: bool = True
+    
+    # Product fields (for semantic search)
+    product_name: str
+    product_slug: str
+    product_description: Optional[str] = None
+    category_id: int
+    
+    # Variant attributes (e.g., {"color": "blue", "size": "M"})
+    attributes: Dict[str, str] = Field(default_factory=dict)
 
 
-class IndexProductsRequest(BaseModel):
-    items: List[Product]
+class IndexProductVariantsRequest(BaseModel):
+    items: List[ProductVariant]
 
 
 class SearchRequest(BaseModel):
@@ -30,9 +45,13 @@ class SearchRequest(BaseModel):
 
 
 class SearchResult(BaseModel):
-    id: int  # Product ID
+    id: int  # Variant ID
     score: float
-    name: Optional[str] = None
+    sku: Optional[str] = None
+    product_name: Optional[str] = None
+    price: Optional[Decimal] = None
+    stock: Optional[int] = None
+    attributes: Optional[Dict[str, str]] = None
     snippet: Optional[str] = None
 
 
