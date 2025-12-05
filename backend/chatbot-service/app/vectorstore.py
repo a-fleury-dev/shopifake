@@ -1,6 +1,6 @@
 from typing import List
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams, PointStruct
+from qdrant_client.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue
 
 from .config import QDRANT_URL, QDRANT_COLLECTION
 from .embeddings import embed
@@ -88,6 +88,71 @@ def query_similar(query_text: str, top_k: int = 5) -> List[SearchResult]:
         raw = qdrant.query_points(
             collection_name=QDRANT_COLLECTION,
             query=q_vec,
+            limit=limit,
+            with_payload=True,
+        )
+        points = raw.points
+
+    results: List[SearchResult] = []
+    for r in points:
+        payload = getattr(r, "payload", {}) or {}
+        score = getattr(r, "score", None)
+        desc = (payload.get("product_description") or "")[:220]
+        
+        # Convert price string back to Decimal
+        from decimal import Decimal
+        price_str = payload.get("price")
+        price = Decimal(price_str) if price_str else None
+        
+        results.append(
+            SearchResult(
+                id=payload.get("variant_id", getattr(r, "id", 0)),
+                score=float(score) if score is not None else 0.0,
+                sku=payload.get("sku"),
+                product_name=payload.get("product_name"),
+                price=price,
+                stock=payload.get("stock"),
+                attributes=payload.get("attributes", {}),
+                snippet=desc,
+            )
+        )
+
+    return results
+
+
+def query_similar_by_shop(query_text: str, shop_id: int, top_k: int = 5) -> List[SearchResult]:
+    """
+    Search for similar product variants filtered by shop_id.
+    Only returns results from the specified shop.
+    """
+    ensure_collection()
+    q_vec = embed(query_text)
+    limit = max(1, min(top_k, 50))
+
+    # Create filter for shop_id
+    shop_filter = Filter(
+        must=[
+            FieldCondition(
+                key="shop_id",
+                match=MatchValue(value=shop_id)
+            )
+        ]
+    )
+
+    if hasattr(qdrant, "search"):
+        raw = qdrant.search(
+            collection_name=QDRANT_COLLECTION,
+            query_vector=q_vec,
+            query_filter=shop_filter,
+            limit=limit,
+            with_payload=True,
+        )
+        points = raw
+    else:
+        raw = qdrant.query_points(
+            collection_name=QDRANT_COLLECTION,
+            query=q_vec,
+            query_filter=shop_filter,
             limit=limit,
             with_payload=True,
         )

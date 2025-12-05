@@ -44,6 +44,12 @@ class SearchRequest(BaseModel):
     top_k: int = 5
 
 
+class ShopSearchRequest(BaseModel):
+    query: str
+    shop_id: int
+    top_k: int = 5
+
+
 class SearchResult(BaseModel):
     id: int  # Variant ID
     score: float
