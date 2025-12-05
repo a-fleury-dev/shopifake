@@ -52,11 +52,11 @@
             "tags": [
                 "shoes",
                 "puma",
-                "retroo",
+                "retro",
                 "sneakers",
                 "casual"
             ],
-            "price": 110.00,
+            "price": 100.00,
             "category": "Footwear",
             "image_url": "https://example.com/puma-rsx.jpg"
         },
