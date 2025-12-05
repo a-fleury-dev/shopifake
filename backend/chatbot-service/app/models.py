@@ -11,13 +11,13 @@ class ChatResponse(BaseModel):
 
 
 class Product(BaseModel):
-    id: str  # original catalog id (string)
-    title: str
-    description: str
-    tags: Optional[List[str]] = None
-    price: Optional[float] = None
-    category: Optional[str] = None
-    image_url: Optional[str] = None
+    id: int  # Product ID from database
+    category_id: int
+    shop_id: int
+    name: str
+    slug: str
+    description: Optional[str] = None
+    is_active: bool = True
 
 
 class IndexProductsRequest(BaseModel):
@@ -30,9 +30,9 @@ class SearchRequest(BaseModel):
 
 
 class SearchResult(BaseModel):
-    id: str
+    id: int  # Product ID
     score: float
-    title: Optional[str] = None
+    name: Optional[str] = None
     snippet: Optional[str] = None
 
 

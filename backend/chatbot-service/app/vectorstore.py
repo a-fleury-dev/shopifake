@@ -22,30 +22,33 @@ def ensure_collection() -> None:
 
 
 def product_text(p: Product) -> str:
-    parts = [p.title or "", p.description or ""]
-    if p.category:
-        parts.append(f"Category: {p.category}")
-    if p.tags:
-        parts.append("Tags: " + ", ".join(p.tags))
+    """
+    Generate text for embedding from product data.
+    Only includes semantically meaningful fields (name, description).
+    Excludes: id, shop_id, category_id, slug, is_active, timestamps
+    as they don't contribute to semantic similarity.
+    """
+    parts = [p.name or "", p.description or ""]
     return "\n".join([s for s in parts if s]).strip()
 
 
 def upsert_products(items: List[Product]) -> int:
     ensure_collection()
     points: List[PointStruct] = []
-    for idx, item in enumerate(items, start=1):
+    for item in items:
         vec = embed(product_text(item))
         points.append(
             PointStruct(
-                id=idx,
+                id=item.id,  # Use actual product ID from database
                 vector=vec,
                 payload={
                     "product_id": item.id,
-                    "title": item.title,
+                    "name": item.name,
                     "description": item.description,
-                    "tags": item.tags,
-                    "price": item.price,
-                    "category": item.category,
+                    "shop_id": item.shop_id,
+                    "category_id": item.category_id,
+                    "slug": item.slug,
+                    "is_active": item.is_active,
                 },
             )
         )
@@ -82,9 +85,9 @@ def query_similar(query_text: str, top_k: int = 5) -> List[SearchResult]:
         desc = (payload.get("description") or "")[:220]
         results.append(
             SearchResult(
-                id=payload.get("product_id", str(getattr(r, "id", "?"))),
+                id=payload.get("product_id", getattr(r, "id", 0)),
                 score=float(score) if score is not None else 0.0,
-                title=payload.get("title"),
+                name=payload.get("name"),
                 snippet=desc,
             )
         )

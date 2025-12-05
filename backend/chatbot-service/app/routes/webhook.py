@@ -12,15 +12,15 @@ router = APIRouter()
 
 
 class WebhookProduct(BaseModel):
-    """Produit reçu via webhook"""
+    """Product received via webhook"""
 
-    id: str
-    title: str
+    id: int
+    category_id: int
+    shop_id: int
+    name: str
+    slug: str
     description: Optional[str] = None
-    price: Optional[float] = None
-    category: Optional[str] = None
-    image_url: Optional[str] = None
-    stock: Optional[int] = None
+    is_active: bool = True
 
 
 class ProductWebhookPayload(BaseModel):
@@ -34,24 +34,26 @@ class ProductWebhookPayload(BaseModel):
 @router.post("/webhook/product")
 async def product_webhook(payload: ProductWebhookPayload):
     """
-    Webhook pour recevoir les notifications de changement de produit.
+    Webhook to receive product change notifications.
 
-    Events supportés:
-    - product.created: Nouveau produit créé
-    - product.updated: Produit mis à jour
-    - product.deleted: Produit supprimé
+    Supported events:
+    - product.created: New product created
+    - product.updated: Product updated
+    - product.deleted: Product deleted
 
-    Exemple de payload:
+    Example payload:
     ```json
     {
         "event": "product.created",
         "timestamp": "2025-11-25T10:30:00Z",
         "data": {
-            "id": "prod-123",
-            "title": "T-shirt Bio",
-            "description": "T-shirt en coton biologique",
-            "price": 29.99,
-            "category": "vetements"
+            "id": 123,
+            "category_id": 1,
+            "shop_id": 1,
+            "name": "Organic T-Shirt",
+            "slug": "organic-t-shirt",
+            "description": "T-shirt made from organic cotton",
+            "is_active": true
         }
     }
     ```
@@ -62,8 +64,8 @@ async def product_webhook(payload: ProductWebhookPayload):
 
     try:
         if payload.event == "product.deleted":
-            # Pour la suppression, on pourrait implémenter une vraie suppression
-            # Pour l'instant on log juste
+            # For deletion, we could implement actual removal
+            # For now we just log it
             logger.info(
                 f"Product {payload.data.id} deleted (not removing from vector DB)"
             )
@@ -75,17 +77,18 @@ async def product_webhook(payload: ProductWebhookPayload):
             }
 
         elif payload.event in ["product.created", "product.updated"]:
-            # Conversion du produit webhook vers le format Product
+            # Convert webhook product to Product format
             product = Product(
                 id=payload.data.id,
-                title=payload.data.title,
+                category_id=payload.data.category_id,
+                shop_id=payload.data.shop_id,
+                name=payload.data.name,
+                slug=payload.data.slug,
                 description=payload.data.description or "",
-                price=payload.data.price,
-                category=payload.data.category,
-                image_url=payload.data.image_url,
+                is_active=payload.data.is_active,
             )
 
-            # Mise à jour dans la base vectorielle
+            # Update in vector database
             upsert_products([product])
 
             action = "indexed" if payload.event == "product.created" else "updated"
