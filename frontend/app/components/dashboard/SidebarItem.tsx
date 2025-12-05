@@ -12,10 +12,10 @@ export function SidebarItem({ icon: Icon, label, isActive, onClick }: SidebarIte
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 text-left ${
+      className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left ${
         isActive
           ? 'liquid-button text-primary-foreground'
-          : 'ios-surface text-foreground hover:scale-[1.02] liquid-glow'
+          : 'ios-surface text-foreground liquid-glow'
       }`}
     >
       <div

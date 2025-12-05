@@ -54,7 +54,7 @@ def format_results(results: List[SearchResult]) -> str:
     lines = []
     for i, r in enumerate(results, start=1):
         # Price is not part of SearchResult; to include it we would extend the model.
-        lines.append(f"{i}. {r.title or 'Untitled'}\n   {r.snippet or ''}")
+        lines.append(f"{i}. {r.product_name or 'Untitled'}\n   {r.snippet or ''}")
     return "\n".join(lines)
 
 
