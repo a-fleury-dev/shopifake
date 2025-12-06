@@ -7,8 +7,8 @@ import { API_CONFIG } from '../config/api';
 import type {
   ChatbotSearchRequest,
   ChatbotSearchResponse,
-  ChatbotChatRequest,
-  ChatbotChatResponse,
+  ChatbotAssistRequest,
+  ChatbotAssistResponse,
 } from '../lib/chatbot/dto';
 
 /**
@@ -38,13 +38,13 @@ export async function searchProducts(
 }
 
 /**
- * Send a chat message to the chatbot
+ * Send a message to the chatbot assist endpoint
  */
-export async function sendChatMessage(
-  request: ChatbotChatRequest
-): Promise<ChatbotChatResponse> {
+export async function sendAssistMessage(
+  request: ChatbotAssistRequest
+): Promise<ChatbotAssistResponse> {
   try {
-    const response = await fetch(API_CONFIG.endpoints.chatbot.chat(), {
+    const response = await fetch(API_CONFIG.endpoints.chatbot.assist(), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -53,12 +53,12 @@ export async function sendChatMessage(
     });
 
     if (!response.ok) {
-      throw new Error(`Chatbot chat failed: ${response.statusText}`);
+      throw new Error(`Chatbot assist failed: ${response.statusText}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Chatbot chat error:', error);
+    console.error('Chatbot assist error:', error);
     throw error;
   }
 }

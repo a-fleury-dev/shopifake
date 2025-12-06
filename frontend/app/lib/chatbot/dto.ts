@@ -16,8 +16,10 @@ export interface ChatbotSearchResult {
   score: number;
   sku: string;
   product_name: string;
+  product_slug: string;
   price: string;
   stock: number;
+  shop_id: number;
   attributes: Record<string, string>;
   snippet: string;
 }
@@ -26,10 +28,14 @@ export interface ChatbotSearchResponse {
   results: ChatbotSearchResult[];
 }
 
-export interface ChatbotChatRequest {
+export interface ChatbotAssistRequest {
   prompt: string;
+  shop_id?: number;
+  top_k?: number;
 }
 
-export interface ChatbotChatResponse {
+export interface ChatbotAssistResponse {
   response: string;
+  results: ChatbotSearchResult[];
+  intent: string;
 }
