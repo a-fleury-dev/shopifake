@@ -94,12 +94,12 @@ jobs:
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Create application secrets
-        if: inputs.service-name == 'chatbot-service'
+        if: inputs.service-name == 'chatbot-service' || inputs.service-name == 'recommandation-service'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           if [ -n "$OPENAI_API_KEY" ]; then
-            kubectl create secret generic ${{ inputs.service-name }}-secret \
+            kubectl create secret generic openai-secret \
               --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY" \
               --namespace=$NAMESPACE \
               --dry-run=client -o yaml | kubectl apply -f -
