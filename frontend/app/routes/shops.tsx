@@ -9,7 +9,7 @@ import type { ShopDTO } from '../lib/shops/dto';
 import { translations } from '../lib/translations';
 import { ShopsHeader } from '../components/shops/ShopsHeader';
 import { useTheme } from '../contexts/ThemeContext';
-import { useAuth } from '../lib/hooks/useAuth';
+import {useAuth} from "../contexts/AuthContext";
 
 export function meta() {
   return [
@@ -21,8 +21,7 @@ export function meta() {
 export default function ShopsRoute() {
   const navigate = useNavigate();
   const { theme, setTheme, language, setLanguage } = useTheme();
-  const { isAuthenticated: checkAuth, getAdminId } = useAuth();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const { user, tokens, logout, isLoading: authLoading, getUserData } = useAuth();
   const [shops, setShops] = useState<ShopDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,55 +29,53 @@ export default function ShopsRoute() {
   // Check authentication and fetch shops on mount
   useEffect(() => {
     const loadShops = async () => {
-      const user = localStorage.getItem('shopifake_user');
-      const authTime = localStorage.getItem('shopifake_auth_time');
+      // Wait for auth context to load from localStorage
+      if (authLoading) {
+        return;
+      }
 
-      if (user && authTime) {
-        const authDate = parseInt(authTime);
-        const now = Date.now();
+      // If not authenticated, don't try to load shops
+      if (!tokens) {
+        setIsLoading(false);
+        return;
+      }
 
-        if (now - authDate < 600000) {
-          setIsAuthenticated(true);
-          
-          // Fetch shops from API - read directly from localStorage
-          const adminIdStr = localStorage.getItem('shopifake_temp_admin_id');
-          const adminId = adminIdStr ? parseInt(adminIdStr, 10) : null;
-          
-          if (adminId) {
-            try {
-              setIsLoading(true);
-              const fetchedShops = await fetchShopsByAdminId(adminId);
-              setShops(fetchedShops);
-              setError(null);
-            } catch (err) {
-              console.error('Failed to fetch shops:', err);
-              setError(err instanceof Error ? err.message : 'Failed to load shops');
-            } finally {
-              setIsLoading(false);
-            }
-          } else {
-            setError('No admin ID found');
-            setIsLoading(false);
-          }
-        } else {
-          localStorage.removeItem('shopifake_user');
-          localStorage.removeItem('shopifake_auth_time');
-          localStorage.removeItem('shopifake_temp_admin_id');
-          setIsAuthenticated(false);
+      // If we have tokens but no user, fetch user data
+      if (!user) {
+        try {
+          await getUserData();
+        } catch (err) {
+          console.error('Failed to fetch user data:', err);
+          setError('Failed to load user data');
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Now we should have user data
+      if (user?.id) {
+        try {
+          setIsLoading(true);
+          const fetchedShops = await fetchShopsByAdminId(user.id);
+          setShops(fetchedShops);
+          setError(null);
+        } catch (err) {
+          console.error('Failed to fetch shops:', err);
+          setError(err instanceof Error ? err.message : 'Failed to load shops');
+        } finally {
           setIsLoading(false);
         }
       } else {
-        setIsAuthenticated(false);
+        setError('No admin ID found');
         setIsLoading(false);
       }
     };
 
     loadShops();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array - only run once on mount
+  }, [tokens, user, authLoading, getUserData]);
 
   // Show loading state while checking auth
-  if (isAuthenticated === null || isLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -90,7 +87,7 @@ export default function ShopsRoute() {
   }
 
   // Redirect to auth if not authenticated
-  if (!isAuthenticated) {
+  if (!tokens) {
     return <Navigate to="/auth" replace />;
   }
 

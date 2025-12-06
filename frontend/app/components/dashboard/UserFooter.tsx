@@ -1,18 +1,16 @@
 import { Button } from '../ui/button';
 import { LogOut, Moon, Sun } from 'lucide-react';
+import type {User} from "../../lib/types/auth";
 
 interface UserFooterProps {
-  currentUser: {
-    name: string;
-    role: 'admin' | 'manager';
-  };
+  currentUser: User;
   theme: 'light' | 'dark';
   setTheme: (theme: 'light' | 'dark') => void;
   onLogout: () => void;
 }
 
 export function UserFooter({ currentUser, theme, setTheme, onLogout }: UserFooterProps) {
-  const userName = currentUser.name || 'User';
+  const userName = currentUser.firstName + " " + currentUser.lastName || 'User';
   const userInitial = userName.charAt(0).toUpperCase();
   
   return (
@@ -24,7 +22,7 @@ export function UserFooter({ currentUser, theme, setTheme, onLogout }: UserFoote
         <div className="flex-1 min-w-0">
           <p className="text-foreground font-semibold truncate">{userName}</p>
           <p className="text-muted-foreground-enhanced text-sm">
-            {currentUser.role === 'admin' ? 'Administrator' : 'Manager'}
+            {'Administrator'}
           </p>
         </div>
       </div>

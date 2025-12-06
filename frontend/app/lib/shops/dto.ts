@@ -3,12 +3,14 @@
  * Based on main-api response structure
  */
 
+import type {UUID} from "node:crypto";
+
 /**
  * Shop DTO - matches the backend response
  */
 export interface ShopDTO {
   id: number;
-  adminId: number;
+  adminId: UUID;
   domainName: string;
   name: string;
   description: string | null;
@@ -21,7 +23,7 @@ export interface ShopDTO {
  * Shop Create Request DTO
  */
 export interface CreateShopRequestDTO {
-  adminId: number;
+  adminId: UUID;
   name: string;
   domainName: string;
   description?: string;

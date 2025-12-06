@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -17,7 +18,7 @@ public class ShopResponse {
     private Long id;
 
     @Schema(description = "ID de l'administrateur", example = "1")
-    private Long adminId;
+    private UUID adminId;
 
     @Schema(description = "Nom de domaine", example = "sport-elite.shopifake.com")
     private String domainName;

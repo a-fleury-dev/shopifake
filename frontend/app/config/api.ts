@@ -2,16 +2,18 @@
  * API Configuration
  * Centralized configuration for API endpoints
  */
+import type {UUID} from "node:crypto";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
 const IMAGE_SERVICE_URL = import.meta.env.VITE_IMAGE_SERVICE_URL || 'http://localhost:5002';
+const AUTH_SERVICE_URL = import.meta.env.VITE_AUTH_SERVICE_URL || 'http://localhost:5003';
 
 export const API_CONFIG = {
   baseUrl: API_BASE_URL,
   imageServiceUrl: IMAGE_SERVICE_URL,
   endpoints: {
     shops: {
-      byAdmin: (adminId: number) => `${API_BASE_URL}/api/v1/shops/admin/${adminId}`,
+      byAdmin: (adminId: UUID) => `${API_BASE_URL}/api/v1/shops/admin/${adminId}`,
       byId: (shopId: number) => `${API_BASE_URL}/api/v1/shops/${shopId}`,
       byDomain: (domainName: string) => `${API_BASE_URL}/api/v1/shops/domain/${domainName}`,
       create: () => `${API_BASE_URL}/api/v1/shops`,
@@ -41,9 +43,13 @@ export const API_CONFIG = {
       byId: (shopId: number, variantId: number) => `${API_BASE_URL}/api/shops/${shopId}/variants/${variantId}`,
     },
     // Prêt pour d'autres services
-    // auth: {
-    //   login: () => `${API_BASE_URL}/api/v1/auth/login`,
-    //   logout: () => `${API_BASE_URL}/api/v1/auth/logout`,
-    // },
+    auth: {
+        register: () => `${AUTH_SERVICE_URL}/api/v1/auth/register`,
+        login: () => `${AUTH_SERVICE_URL}/api/v1/auth/login`,
+        logout: () => `${AUTH_SERVICE_URL}/api/v1/auth/logout`,
+        refresh: () => `${AUTH_SERVICE_URL}/api/v1/auth/refresh`,
+        user: () => `${AUTH_SERVICE_URL}/api/v1/auth/user`,
+        health: () => `${AUTH_SERVICE_URL}/api/v1/health`,
+    },
   },
 } as const;

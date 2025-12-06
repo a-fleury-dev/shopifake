@@ -5,11 +5,12 @@
 
 import { API_CONFIG } from '../config/api';
 import type { ShopDTO, CreateShopRequestDTO, UpdateShopRequestDTO } from '../lib/shops/dto';
+import type {UUID} from "node:crypto";
 
 /**
  * Fetch all shops for a specific admin
  */
-export async function fetchShopsByAdminId(adminId: number): Promise<ShopDTO[]> {
+export async function fetchShopsByAdminId(adminId: UUID): Promise<ShopDTO[]> {
   const response = await fetch(API_CONFIG.endpoints.shops.byAdmin(adminId), {
     method: 'GET',
     headers: {

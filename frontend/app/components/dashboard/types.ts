@@ -1,17 +1,12 @@
 // Dashboard types and interfaces
 import type { Shop } from '../../lib/shops/types';
-
-export interface CurrentUser {
-  email: string;
-  name: string;
-  role: 'admin' | 'manager';
-}
+import type {User} from "../../lib/types/auth";
 
 export interface DashboardProps {
   language: 'en' | 'fr';
   theme: 'light' | 'dark';
   setTheme: (theme: 'light' | 'dark') => void;
-  currentUser: CurrentUser;
+  currentUser: User;
   onLogout: () => void;
   currentShop?: Shop;
   onBackToShops?: () => void;

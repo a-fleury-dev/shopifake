@@ -10,6 +10,9 @@ import {
 import type { Route } from './+types/root';
 import './app.css';
 import { ThemeProvider } from './contexts/ThemeContext';
+import {AuthProvider, useAuth} from './contexts/AuthContext';
+import Home from "./routes/home";
+import React, {useEffect} from "react";
 
 export const links: Route.LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -35,7 +38,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <ThemeProvider>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </ThemeProvider>
         <ScrollRestoration />
         <Scripts />
@@ -46,6 +51,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return <Outlet />;
+}
+
+function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
+    const { tokens } = useAuth();
+    useEffect(() => {
+
+    }, [tokens]);
+    if (tokens) {
+        return tokens.expiresAt < Date.now() ? <Component /> : <Home />;
+    }
+    else
+        return <Home />;
+
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/shops")
@@ -92,7 +93,7 @@ public class ShopController {
     @ApiResponse(responseCode = "200", description = "Liste des boutiques de l'admin récupérée")
     public ResponseEntity<List<ShopResponse>> getShopsByAdminId(
             @Parameter(description = "ID de l'administrateur", required = true)
-            @PathVariable Long adminId) {
+            @PathVariable UUID adminId) {
         List<ShopResponse> shops = shopService.getShopsByAdminId(adminId);
         return ResponseEntity.ok(shops);
     }
