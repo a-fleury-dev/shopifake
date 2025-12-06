@@ -42,5 +42,8 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
 
     @Query("SELECT COALESCE(SUM(pv.stock * pv.price), 0) FROM ProductVariant pv WHERE pv.shopId = :shopId")
     java.math.BigDecimal sumStockValueByShopId(@Param("shopId") Long shopId);
+
+    @Query("SELECT pv FROM ProductVariant pv LEFT JOIN FETCH pv.attributes WHERE pv.id = :id")
+    Optional<ProductVariant> findByIdWithAttributes(@Param("id") Long id);
 }
 
