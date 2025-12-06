@@ -52,15 +52,15 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
      */
     @Query(value = """
         WITH RECURSIVE category_tree AS (
-            SELECT id, shop_id, parent_id, label, slug, position, 0 as depth
+            SELECT id, shop_id, parent_id, label, slug, position, created_at, updated_at, 0 as depth
             FROM categories
             WHERE id = :categoryId
             UNION ALL
-            SELECT c.id, c.shop_id, c.parent_id, c.label, c.slug, c.position, ct.depth + 1
+            SELECT c.id, c.shop_id, c.parent_id, c.label, c.slug, c.position, c.created_at, c.updated_at, ct.depth + 1
             FROM categories c
             INNER JOIN category_tree ct ON c.parent_id = ct.id
         )
-        SELECT * FROM category_tree ORDER BY depth, position
+        SELECT id, shop_id, parent_id, label, slug, position, created_at, updated_at FROM category_tree ORDER BY depth, position
         """, nativeQuery = true)
     List<Category> findDescendants(@Param("categoryId") Long categoryId);
 

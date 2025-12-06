@@ -10,7 +10,7 @@ import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Separator } from '../components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../components/ui/sheet';
-import { fetchRootCategories, fetchCategoryChildren, fetchCategoryBreadcrumb, fetchProductsWithVariantsByCategory } from '../clients/storefrontApiClient';
+import { fetchRootCategories, fetchCategoryChildren, fetchCategoryBreadcrumb, fetchProductsWithVariantsByCategory, fetchAllProductsWithVariants } from '../clients/storefrontApiClient';
 import { fetchShopByDomain } from '../clients/shopApiClient';
 import { transformCategory, transformProductsWithVariants } from '../lib/storefront/transform';
 import type { ProductVariant, Category } from '../lib/types/storefront';
@@ -114,10 +114,12 @@ function StorefrontContent() {
         const shopId = shop.id;
         
         if (selectedCategoryId === null) {
-          // No category selected - show nothing or all categories
-          setAllVariants([]);
+          // No category selected - show all variants from all categories
+          const productsWithVariants = await fetchAllProductsWithVariants(shopId);
+          const variants = transformProductsWithVariants(productsWithVariants);
+          setAllVariants(variants);
         } else {
-          // Fetch products with variants for selected category
+          // Fetch products with variants for selected category and subcategories
           const productsWithVariants = await fetchProductsWithVariantsByCategory(shopId, selectedCategoryId);
           const variants = transformProductsWithVariants(productsWithVariants);
           setAllVariants(variants);

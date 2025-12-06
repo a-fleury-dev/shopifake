@@ -209,27 +209,43 @@ export async function fetchVariantById(shopId: number, variantId: number): Promi
  */
 
 /**
- * Fetch products with their variants for a category
- * This is a convenience function that combines multiple API calls
+ * Fetch products with their variants for a category and all its subcategories (recursive)
+ * Uses the backend endpoint that returns products from the category and all descendants
  */
 export async function fetchProductsWithVariantsByCategory(
   shopId: number,
   categoryId: number
 ): Promise<ProductWithVariantsDTO[]> {
-  // Fetch all products in the category
-  const products = await fetchProductsByCategory(shopId, categoryId);
+  const response = await fetch(API_CONFIG.endpoints.products.byCategoryWithVariants(shopId, categoryId), {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+  });
 
-  // Fetch variants for each product in parallel
-  const productsWithVariants = await Promise.all(
-    products.map(async (product) => {
-      const variants = await fetchVariantsByProduct(shopId, product.id);
-      return {
-        product,
-        variants: variants.filter(v => v.isActive), // Only active variants
-      };
-    })
-  );
+  if (!response.ok) {
+    throw new Error(`Failed to fetch products with variants: ${response.status} ${response.statusText}`);
+  }
 
-  // Filter out products with no active variants
-  return productsWithVariants.filter(p => p.variants.length > 0);
+  return response.json();
+}
+
+/**
+ * Fetch all products with their variants for a shop (all categories)
+ */
+export async function fetchAllProductsWithVariants(
+  shopId: number
+): Promise<ProductWithVariantsDTO[]> {
+  const response = await fetch(API_CONFIG.endpoints.products.allWithVariants(shopId), {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch all products with variants: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
 }
