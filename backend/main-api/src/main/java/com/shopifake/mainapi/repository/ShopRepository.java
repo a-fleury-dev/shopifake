@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface ShopRepository extends JpaRepository<Shop, Long> {
@@ -13,7 +14,7 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
     /**
      * Trouver toutes les boutiques d'un administrateur
      */
-    List<Shop> findByAdminId(Long adminId);
+    List<Shop> findByAdminId(UUID adminId);
 
     /**
      * Trouver une boutique par son nom de domaine

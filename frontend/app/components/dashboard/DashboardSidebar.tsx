@@ -22,16 +22,13 @@ import {
 import type { CategoryType } from './types';
 
 import type { Shop } from '../../lib/shops/types';
+import type {User} from "../../lib/types/auth";
 
 interface DashboardSidebarProps {
   language: 'en' | 'fr';
   theme: 'light' | 'dark';
   setTheme: (theme: 'light' | 'dark') => void;
-  currentUser: {
-    name: string;
-    email: string;
-    role: 'admin' | 'manager';
-  };
+  currentUser: User;
   activeCategory: CategoryType;
   activeTab: string;
   onCategoryChange: (category: CategoryType) => void;

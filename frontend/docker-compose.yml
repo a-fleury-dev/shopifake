@@ -1,0 +1,30 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shopifake-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=production
+      - PORT=5173
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://main-api:5001}
+      - VITE_IMAGE_SERVICE_URL=${VITE_IMAGE_SERVICE_URL:-http://minio:5002}
+      - VITE_AUTH_SERVICE_URL=${VITE_AUTH_SERVICE_URL:-http://auth-service:5003}
+      - VITE_CHATBOT_SERVICE_URL=${VITE_CHATBOT_SERVICE_URL:-http://chatbot-service:5004}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5173', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - shopifake-network
+
+networks:
+  shopifake-network:
+    driver: bridge
+
+

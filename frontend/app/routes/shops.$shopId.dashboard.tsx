@@ -5,7 +5,7 @@ import { fetchShopById } from '../clients/shopApiClient';
 import type { ShopDTO } from '../lib/shops/dto';
 import type { Shop } from '../lib/shops/types';
 import { useTheme } from '../contexts/ThemeContext';
-import { useAuth } from '../lib/hooks/useAuth';
+import {useAuth} from "../contexts/AuthContext";
 
 // Transform ShopDTO to Shop format expected by Dashboard
 function transformShopDTOToShop(dto: ShopDTO): Shop {
@@ -36,13 +36,7 @@ export default function ShopDashboardRoute() {
   const { shopId } = useParams();
   const navigate = useNavigate();
   const { theme, setTheme, language } = useTheme();
-  const { isAuthenticated: checkAuth } = useAuth();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [currentUser, setCurrentUser] = useState<{
-    email: string;
-    name: string;
-    role: 'admin' | 'manager';
-  } | null>(null);
+  const { user, logout } = useAuth();
   const [currentShop, setCurrentShop] = useState<Shop | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,17 +44,8 @@ export default function ShopDashboardRoute() {
   // Check authentication and fetch shop on mount
   useEffect(() => {
     const loadShop = async () => {
-      const user = localStorage.getItem('shopifake_user');
-      const authTime = localStorage.getItem('shopifake_auth_time');
 
-      if (user && authTime) {
-        const authDate = parseInt(authTime);
-        const now = Date.now();
-
-        if (now - authDate < 600000) {
-          setCurrentUser(JSON.parse(user));
-          setIsAuthenticated(true);
-          
+      if (user) {
           // Fetch the shop from API
           if (shopId) {
             try {
@@ -74,16 +59,10 @@ export default function ShopDashboardRoute() {
             } finally {
               setIsLoading(false);
             }
-          }
         } else {
-          localStorage.removeItem('shopifake_user');
-          localStorage.removeItem('shopifake_auth_time');
-          localStorage.removeItem('shopifake_temp_admin_id');
-          setIsAuthenticated(false);
           setIsLoading(false);
         }
       } else {
-        setIsAuthenticated(false);
         setIsLoading(false);
       }
     };
@@ -91,11 +70,9 @@ export default function ShopDashboardRoute() {
     loadShop();
   }, [shopId]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('shopifake_user');
-    localStorage.removeItem('shopifake_auth_time');
-    setIsAuthenticated(false);
-    window.location.href = '/';
+  const handleLogout = async () => {
+      await logout()
+      window.location.href = '/';
   };
 
   const handleBackToShops = () => {
@@ -103,7 +80,7 @@ export default function ShopDashboardRoute() {
   };
 
   // Show loading state while checking auth or fetching shop
-  if (isAuthenticated === null || isLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -115,7 +92,7 @@ export default function ShopDashboardRoute() {
   }
 
   // Redirect to auth if not authenticated
-  if (!isAuthenticated || !currentUser) {
+  if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
@@ -146,7 +123,7 @@ export default function ShopDashboardRoute() {
       language={language}
       theme={theme}
       setTheme={setTheme}
-      currentUser={currentUser}
+      currentUser={user}
       onLogout={handleLogout}
       currentShop={currentShop}
       onBackToShops={handleBackToShops}

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -85,7 +86,7 @@ public class ShopService {
      * Obtenir toutes les boutiques d'un administrateur
      */
     @Transactional(readOnly = true)
-    public List<ShopResponse> getShopsByAdminId(Long adminId) {
+    public List<ShopResponse> getShopsByAdminId(UUID adminId) {
         log.info("Récupération des boutiques de l'admin: {}", adminId);
 
         return shopRepository.findByAdminId(adminId).stream()

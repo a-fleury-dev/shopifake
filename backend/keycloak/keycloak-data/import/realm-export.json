@@ -58,7 +58,7 @@
       },
       {
         "id": "1c964662-7493-4437-b55f-07e6f7fd9edd",
-        "name": "default-roles-companion",
+        "name": "default-roles-shopifake",
         "description": "${role_default-roles}",
         "composite": true,
         "composites": {
@@ -445,7 +445,7 @@
   "groups": [],
   "defaultRole": {
     "id": "1c964662-7493-4437-b55f-07e6f7fd9edd",
-    "name": "default-roles-companion",
+    "name": "default-roles-shopifake",
     "description": "${role_default-roles}",
     "composite": true,
     "clientRole": false,
@@ -2637,5 +2637,29 @@
   },
   "clientPolicies": {
     "policies": []
-  }
+  },
+  "users": [
+    {
+      "id": "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
+      "username": "${KEYCLOAK_USER_EMAIL}",
+      "email": "${KEYCLOAK_USER_EMAIL}",
+      "firstName": "User",
+      "lastName": "Test",
+      "emailVerified": false,
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_USER_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ],
+      "clientRoles": {},
+      "groups": []
+    }
+  ]
+
 }

@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router';
 import { Dashboard } from '../components/Dashboard';
 import { useTheme } from '../contexts/ThemeContext';
+import type {User} from "../lib/types/auth";
+import {useAuth} from "../contexts/AuthContext";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -13,46 +15,23 @@ export function meta({}: Route.MetaArgs) {
 
 export default function DashboardRoute() {
   const { theme, setTheme, language } = useTheme();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [currentUser, setCurrentUser] = useState<{
-    email: string;
-    name: string;
-    role: 'admin' | 'manager';
-  } | null>(null);
+  const { user, logout } = useAuth();
 
   // Check authentication on mount
   useEffect(() => {
-    const user = localStorage.getItem('shopifake_user');
-    const authTime = localStorage.getItem('shopifake_auth_time');
 
-    if (user && authTime) {
-      // Check if auth is still valid (10 minutes = 600000 ms)
-      const authDate = parseInt(authTime);
-      const now = Date.now();
-
-      if (now - authDate < 600000) {
-        setCurrentUser(JSON.parse(user));
-        setIsAuthenticated(true);
-      } else {
-        // Auth expired
-        localStorage.removeItem('shopifake_user');
-        localStorage.removeItem('shopifake_auth_time');
-        setIsAuthenticated(false);
-      }
-    } else {
-      setIsAuthenticated(false);
+    if (!user) {
+        window.location.href = '/auth';
     }
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('shopifake_user');
-    localStorage.removeItem('shopifake_auth_time');
-    setIsAuthenticated(false);
+  const handleLogout = async () => {
+    await logout();
     window.location.href = '/';
   };
 
   // Show loading state while checking auth
-  if (isAuthenticated === null) {
+  if (user === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -64,7 +43,7 @@ export default function DashboardRoute() {
   }
 
   // Redirect to auth if not authenticated
-  if (!isAuthenticated || !currentUser) {
+  if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
@@ -73,7 +52,7 @@ export default function DashboardRoute() {
       language={language}
       theme={theme}
       setTheme={setTheme}
-      currentUser={currentUser}
+      currentUser={user}
       onLogout={handleLogout}
     />
   );

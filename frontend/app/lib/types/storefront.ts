@@ -1,8 +1,10 @@
 // Storefront Types based on Backend API Architecture
 
+import type {UUID} from "node:crypto";
+
 export interface Shop {
   id: number;
-  adminId: number;
+  adminId: UUID;
   domainName: string;
   name: string;
   description?: string;

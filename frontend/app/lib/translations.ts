@@ -136,6 +136,10 @@ export const translations = {
       form: {
         name: 'Full Name',
         namePlaceholder: 'Enter your full name',
+          firstName: 'First Name',
+          firstNamePlaceholder: 'Enter your first name',
+          lastName: 'Last Name',
+          lastNamePlaceholder: 'Enter your last name',
         email: 'Email Address',
         emailPlaceholder: 'Enter your email',
         password: 'Password',
@@ -150,6 +154,8 @@ export const translations = {
         invalidEmail: 'Please enter a valid email address',
         passwordTooShort: 'Password must be at least 8 characters',
         nameRequired: 'Please enter your name',
+          loginError: 'Invalid credentials',
+          signupError: 'Account creation failed',
       },
       success: {
         loginSuccess: 'Welcome back! Redirecting to your shops...',
@@ -400,6 +406,10 @@ export const translations = {
       form: {
         name: 'Nom Complet',
         namePlaceholder: 'Entrez votre nom complet',
+          firstName: 'Prénom',
+          firstNamePlaceholder: 'Entrez votre prénom',
+          lastName: 'Nom',
+          lastNamePlaceholder: 'Entrez votre nom',
         email: 'Adresse Email',
         emailPlaceholder: 'Entrez votre email',
         password: 'Mot de Passe',
@@ -414,6 +424,8 @@ export const translations = {
         invalidEmail: 'Veuillez entrer une adresse email valide',
         passwordTooShort: 'Le mot de passe doit contenir au moins 8 caractères',
         nameRequired: 'Veuillez entrer votre nom',
+            loginError: 'Identifiants invalides',
+            signupError: "Échec de la création du compte",
       },
       success: {
         loginSuccess: 'Bon retour ! Redirection vers vos boutiques...',

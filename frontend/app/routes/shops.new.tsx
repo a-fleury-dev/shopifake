@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft, Upload, Store, FileText, Link as LinkIcon, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Card } from '../components/ui/card';
@@ -6,10 +6,10 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
-import { useAuth } from '../lib/hooks/useAuth';
 import { createShop } from '../clients/shopApiClient';
 import { uploadStoreBanner } from '../clients/imageApiClient';
 import type { CreateShopRequestDTO } from '../lib/shops/dto';
+import {useAuth} from "../contexts/AuthContext";
 
 export function meta() {
   return [
@@ -20,7 +20,7 @@ export function meta() {
 
 export default function NewShopRoute() {
   const navigate = useNavigate();
-  const { getAdminId } = useAuth();
+  const { user, tokens } = useAuth();
   
   // Form state
   const [name, setName] = useState('');
@@ -53,7 +53,7 @@ export default function NewShopRoute() {
     setIsSubmitting(true);
 
     try {
-      const adminId = getAdminId();
+      const adminId = user?.id;
       if (!adminId) {
         throw new Error('No admin ID found');
       }

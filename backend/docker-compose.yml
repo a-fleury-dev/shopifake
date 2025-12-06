@@ -135,6 +135,8 @@ services:
       KEYCLOAK_MODE: ${KEYCLOAK_MODE:-dev}
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: pwd
+      KEYCLOAK_USER_EMAIL: example@example.com
+      KEYCLOAK_USER_PASSWORD: examplepassword
       #KC_HOSTNAME_STRICT: false
       #KC_HOSTNAME_STRICT_BACKCHANNEL: false
 
@@ -169,6 +171,9 @@ services:
     depends_on:
       keycloak:
         condition: service_started
+    networks:
+      - shopifake-network
+    restart: unless-stopped
   # Qdrant Vector Database for chatbot
   qdrant:
     image: qdrant/qdrant:latest
@@ -189,7 +194,7 @@ services:
       dockerfile: Dockerfile
     container_name: chatbot-service
     ports:
-      - "5003:8080"
+      - "5004:8080"
     environment:
       QDRANT_URL: http://qdrant:6333
       QDRANT_COLLECTION: products
