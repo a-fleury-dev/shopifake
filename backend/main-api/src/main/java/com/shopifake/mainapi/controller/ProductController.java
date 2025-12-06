@@ -3,6 +3,7 @@ package com.shopifake.mainapi.controller;
 import com.shopifake.mainapi.dto.AttributeDefinitionDto;
 import com.shopifake.mainapi.dto.CreateProductRequest;
 import com.shopifake.mainapi.dto.ProductDto;
+import com.shopifake.mainapi.dto.ProductWithVariantsDto;
 import com.shopifake.mainapi.dto.UpdateProductRequest;
 import com.shopifake.mainapi.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,6 +42,21 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductsByShop(shopId));
     }
 
+    @GetMapping("/with-variants")
+    @Operation(
+            summary = "Récupère tous les produits avec variants d'une boutique",
+            description = "Récupère tous les produits avec leurs variants de toutes les catégories d'une boutique"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Liste des produits avec variants récupérée avec succès"),
+            @ApiResponse(responseCode = "404", description = "Boutique non trouvée")
+    })
+    public ResponseEntity<List<ProductWithVariantsDto>> getAllProductsWithVariants(
+            @Parameter(description = "ID de la boutique") @PathVariable Long shopId
+    ) {
+        return ResponseEntity.ok(productService.getAllProductsWithVariants(shopId));
+    }
+
     @GetMapping("/by-category/{categoryId}")
     @Operation(
             summary = "Récupère les produits d'une catégorie",
@@ -55,6 +71,22 @@ public class ProductController {
             @Parameter(description = "ID de la catégorie") @PathVariable Long categoryId
     ) {
         return ResponseEntity.ok(productService.getProductsByCategory(shopId, categoryId));
+    }
+
+    @GetMapping("/by-category/{categoryId}/with-variants")
+    @Operation(
+            summary = "Récupère les produits avec variants d'une catégorie et ses sous-catégories",
+            description = "Récupère tous les produits avec leurs variants d'une catégorie et toutes ses sous-catégories de manière récursive"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Liste des produits avec variants récupérée avec succès"),
+            @ApiResponse(responseCode = "404", description = "Catégorie ou boutique non trouvée")
+    })
+    public ResponseEntity<List<ProductWithVariantsDto>> getProductsWithVariantsByCategory(
+            @Parameter(description = "ID de la boutique") @PathVariable Long shopId,
+            @Parameter(description = "ID de la catégorie") @PathVariable Long categoryId
+    ) {
+        return ResponseEntity.ok(productService.getProductsWithVariantsByCategory(shopId, categoryId));
     }
 
     @GetMapping("/{productId}")

@@ -38,37 +38,35 @@ export function VariantCard({ variant, onClick, language }: VariantCardProps) {
 
       {/* Product Info */}
       <div className="space-y-3 px-1">
-        <h3 className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+        {/* Product Name */}
+        <h3 className="text-base font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors min-h-[3rem]">
           {variant.productName}
         </h3>
 
         {/* Variant Attributes */}
-        <div className="flex flex-wrap gap-1.5">
-          {variant.attributes.map((attr, index) => (
-            <span
-              key={index}
-              className="text-xs px-2.5 py-1 rounded-full bg-muted text-muted-foreground"
-            >
-              {attr.attributeValue}
-            </span>
-          ))}
-        </div>
+        {variant.attributes.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {variant.attributes.map((attr, index) => (
+              <span
+                key={index}
+                className="text-xs px-2.5 py-1 rounded-full bg-muted text-muted-foreground font-medium"
+              >
+                {attr.attributeValue}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Price and Stock */}
         <div className="flex items-center justify-between pt-1">
-          <span className="text-lg font-bold text-primary">
+          <span className="text-xl font-bold text-primary">
             {formatPrice(variant.price)}
           </span>
           {variant.stock > 0 && variant.stock < 10 && (
-            <span className="text-xs text-orange-500">
+            <span className="text-xs text-orange-500 font-medium">
               {variant.stock} {language === 'en' ? 'left' : 'restant(s)'}
             </span>
           )}
-        </div>
-
-        {/* SKU */}
-        <div className="text-xs text-muted-foreground">
-          SKU: {variant.sku}
         </div>
       </div>
 

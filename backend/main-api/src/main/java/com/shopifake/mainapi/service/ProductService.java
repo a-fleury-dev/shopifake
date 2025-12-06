@@ -4,6 +4,7 @@ import com.shopifake.mainapi.dto.*;
 import com.shopifake.mainapi.exception.BadRequestException;
 import com.shopifake.mainapi.exception.ResourceNotFoundException;
 import com.shopifake.mainapi.mapper.ProductMapper;
+import com.shopifake.mainapi.mapper.ProductVariantMapper;
 import com.shopifake.mainapi.model.AttributeDefinition;
 import com.shopifake.mainapi.model.Category;
 import com.shopifake.mainapi.model.Product;
@@ -32,6 +33,7 @@ public class ProductService {
     private final AttributeDefinitionRepository attributeDefinitionRepository;
     private final ProductVariantRepository productVariantRepository;
     private final ProductMapper productMapper;
+    private final ProductVariantMapper productVariantMapper;
 
     /**
      * Récupère tous les produits d'une catégorie
@@ -41,6 +43,56 @@ public class ProductService {
         return productRepository.findByCategoryIdOrderByName(categoryId)
                 .stream()
                 .map(productMapper::toDto)
+                .toList();
+    }
+
+    /**
+     * Récupère tous les produits avec leurs variants d'une catégorie et ses sous-catégories (récursif)
+     */
+    public List<ProductWithVariantsDto> getProductsWithVariantsByCategory(Long shopId, Long categoryId) {
+        validateCategoryBelongsToShop(categoryId, shopId);
+        
+        // Récupérer la catégorie et tous ses descendants
+        List<Category> descendants = categoryRepository.findDescendants(categoryId);
+        List<Long> categoryIds = descendants.stream()
+                .map(Category::getId)
+                .toList();
+        
+        // Récupérer tous les produits de ces catégories
+        List<Product> products = productRepository.findByCategoryIdInOrderByName(categoryIds);
+        
+        // Pour chaque produit, récupérer ses variants
+        return products.stream()
+                .map(product -> {
+                    List<ProductVariantDto> variants = productVariantRepository
+                            .findByProductIdOrderById(product.getId())
+                            .stream()
+                            .map(productVariantMapper::toDto)
+                            .toList();
+                    return new ProductWithVariantsDto(productMapper.toDto(product), variants);
+                })
+                .toList();
+    }
+
+    /**
+     * Récupère tous les produits avec leurs variants de toutes les catégories d'une boutique
+     */
+    public List<ProductWithVariantsDto> getAllProductsWithVariants(Long shopId) {
+        // Récupérer tous les produits de la boutique
+        List<Product> products = getProductsByShop(shopId).stream()
+                .map(dto -> findProductById(dto.id()))
+                .toList();
+        
+        // Pour chaque produit, récupérer ses variants
+        return products.stream()
+                .map(product -> {
+                    List<ProductVariantDto> variants = productVariantRepository
+                            .findByProductIdOrderById(product.getId())
+                            .stream()
+                            .map(productVariantMapper::toDto)
+                            .toList();
+                    return new ProductWithVariantsDto(productMapper.toDto(product), variants);
+                })
                 .toList();
     }
 

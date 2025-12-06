@@ -57,6 +57,19 @@ public class ShopService {
     }
 
     /**
+     * Obtenir une boutique par son nom de domaine
+     */
+    @Transactional(readOnly = true)
+    public ShopResponse getShopByDomainName(String domainName) {
+        log.info("Récupération de la boutique avec le nom de domaine: {}", domainName);
+
+        Shop shop = shopRepository.findByDomainName(domainName)
+                .orElseThrow(() -> new ResourceNotFoundException("Boutique", "domain_name", domainName));
+
+        return shopMapper.toResponse(shop);
+    }
+
+    /**
      * Obtenir toutes les boutiques
      */
     @Transactional(readOnly = true)

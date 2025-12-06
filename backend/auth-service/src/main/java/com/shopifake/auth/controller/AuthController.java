@@ -29,6 +29,30 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<Object> logout(@RequestBody LogoutRequest request) {
+        try {
+            if (request.getAccessToken() == null || request.getRefreshToken() == null) return ResponseEntity.status(401).build();
+
+            if (authService.logout(request)) return ResponseEntity.noContent().build();
+            else return ResponseEntity.badRequest().build();
+         }catch (Exception e) {
+            log.error("Logout failed", e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<KeycloakTokenResponse> refreshToken(@RequestBody RefreshRequest request) {
+        try {
+            KeycloakTokenResponse response = authService.refreshToken(request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Refresh token failed", e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@RequestBody RegisterRequest request) {
         try {

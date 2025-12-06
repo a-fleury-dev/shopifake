@@ -39,6 +39,24 @@ services:
       timeout: 5s
       retries: 5
 
+  postgres-keycloak:
+    image: postgres:latest
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pwd
+    volumes:
+      - postgres_keycloak_data:/var/lib/postgresql/data
+    networks:
+      - shopifake-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d image_service" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # MinIO for image storage
   minio:
     image: minio/minio:latest
@@ -106,6 +124,51 @@ services:
       - shopifake-network
     restart: unless-stopped
 
+  keycloak:
+    build:
+      context: ./keycloak
+      dockerfile: Dockerfile
+    container_name: keycloak
+    depends_on:
+      - postgres-keycloak
+    environment:
+      KEYCLOAK_MODE: ${KEYCLOAK_MODE:-dev}
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: pwd
+      #KC_HOSTNAME_STRICT: false
+      #KC_HOSTNAME_STRICT_BACKCHANNEL: false
+
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
+      KC_DB: postgres
+      KC_DB_USERNAME: user
+      KC_DB_PASSWORD: pwd
+
+      #Prod only
+      #KC_HOSTNAME: ${KC_HOSTNAME}
+      #KC_HTTPS_CERTIFICATE_FILE: /etc/x509/https/tls.crt
+      #KC_HTTPS_CERTIFICATE_KEY_FILE: /etc/x509/https/tls.key
+    ports:
+      - "8090:8080"
+    volumes:
+      - ./keycloak-data:/opt/keycloak/data
+    networks:
+      - shopifake-network
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "5003:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      KEYCLOAK_URL: http://keycloak:8080
+      ISSUER_URI: http://keycloak:8080/auth/realms/shopifake
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/shopifake/protocol/openid-connect/certs
+    depends_on:
+      keycloak:
+        condition: service_started
   # Qdrant Vector Database for chatbot
   qdrant:
     image: qdrant/qdrant:latest
@@ -145,9 +208,12 @@ volumes:
   postgres_main_data:
   postgres_image_data:
   minio_data:
+  postgres_keycloak_data:
+  keycloak-data:
   qdrant_data:
 
 networks:
   shopifake-network:
+    name: shopifake-network
     driver: bridge
 
