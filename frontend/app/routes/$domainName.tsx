@@ -6,12 +6,14 @@ import { storefrontTranslations } from '../lib/translations/storefront';
 import { VariantCard } from '../components/storefront/VariantCard';
 import { CategorySidebar } from '../components/storefront/CategorySidebar';
 import { ImageWithFallback } from '../components/common/ImageWithFallback';
+import ChatbotWidget from '../components/storefront/ChatbotWidget';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Separator } from '../components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../components/ui/sheet';
 import { fetchRootCategories, fetchCategoryChildren, fetchCategoryBreadcrumb, fetchProductsWithVariantsByCategory, fetchAllProductsWithVariants } from '../clients/storefrontApiClient';
 import { fetchShopByDomain } from '../clients/shopApiClient';
+import { searchProducts } from '../clients/chatbotApiClient';
 import { transformCategory, transformProductsWithVariants } from '../lib/storefront/transform';
 import type { ProductVariant, Category } from '../lib/types/storefront';
 import type { ShopDTO } from '../lib/shops/dto';
@@ -34,6 +36,8 @@ function StorefrontContent() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<ProductVariant[]>([]);
 
   // API state
   const [shop, setShop] = useState<ShopDTO | null>(null);
@@ -133,21 +137,65 @@ function StorefrontContent() {
     loadVariants();
   }, [selectedCategoryId, shop]);
 
-  const filteredVariants = useMemo(() => {
-    // Variants are already filtered by category from the API
-    // We only need to filter by search query and active status
-    let filtered = allVariants.filter(v => v.isActive);
-
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(v =>
-        v.productName?.toLowerCase().includes(query) ||
-        v.sku.toLowerCase().includes(query)
-      );
+  // Handle semantic search with button click
+  const handleSemanticSearch = async () => {
+    if (!searchQuery.trim() || !shop) {
+      return;
     }
 
-    return filtered;
-  }, [allVariants, searchQuery]);
+    try {
+      setIsSearching(true);
+      setSearchResults([]);
+      
+      const response = await searchProducts({
+        query: searchQuery,
+        shop_id: shop.id,
+        top_k: 50,
+        category_ids: selectedCategoryId ? [selectedCategoryId] : undefined,
+      });
+
+      // Transform chatbot results to ProductVariant format
+      const variants: ProductVariant[] = response.results.map(result => ({
+        id: result.id,
+        sku: result.sku,
+        price: parseFloat(result.price),
+        stock: result.stock,
+        isActive: true,
+        productId: 0, // Will be fetched if needed
+        productName: result.product_name,
+        productSlug: '', // Will be fetched if needed
+        productDescription: result.snippet,
+        attributes: result.attributes,
+        shopId: shop.id,
+        createdAt: '',
+        updatedAt: '',
+      }));
+
+      setSearchResults(variants);
+    } catch (err) {
+      console.error('Semantic search failed:', err);
+      alert('La recherche intelligente a échoué. Veuillez réessayer.');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Clear search results when query is cleared
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+    }
+  }, [searchQuery]);
+
+  const displayedVariants = useMemo(() => {
+    // If search results exist, show them instead of category filtered variants
+    if (searchResults.length > 0) {
+      return searchResults;
+    }
+
+    // Otherwise show category filtered variants
+    return allVariants.filter(v => v.isActive);
+  }, [searchResults, allVariants]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -229,24 +277,41 @@ function StorefrontContent() {
             </Button>
 
             {/* Search (centered) */}
-            <div className="flex-1 max-w-xl mx-auto">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder={t.navigation.search}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-12 h-12 rounded-xl ios-surface border-0 text-center"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                )}
+            <div className="flex-1 max-w-2xl mx-auto">
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="🤖 Recherche intelligente..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSemanticSearch()}
+                    className="pl-12 pr-12 h-12 rounded-xl ios-surface border-0"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSearchResults([]);
+                      }}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+                <Button
+                  onClick={handleSemanticSearch}
+                  disabled={!searchQuery.trim() || isSearching}
+                  className="h-12 px-6 rounded-xl"
+                >
+                  {isSearching ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    'Rechercher'
+                  )}
+                </Button>
               </div>
             </div>
 
@@ -377,21 +442,43 @@ function StorefrontContent() {
 
         {/* Products Grid */}
         <div className="flex-1 container mx-auto px-4 md:px-6 py-8">
-          {filteredVariants.length === 0 ? (
+          {displayedVariants.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-6xl mb-4">🛍️</div>
               <h3 className="text-xl font-semibold mb-2">{t.search.noResults}</h3>
-              <p className="text-muted-foreground">{t.search.tryDifferent}</p>
+              <p className="text-muted-foreground">
+                {searchQuery.trim() 
+                  ? "Essayez la recherche intelligente pour trouver des produits similaires"
+                  : t.search.tryDifferent
+                }
+              </p>
             </div>
           ) : (
             <>
-              <div className="mb-6">
+              <div className="mb-6 flex items-center justify-between">
                 <p className="text-muted-foreground">
-                  {filteredVariants.length} {language === 'en' ? 'products' : 'produits'}
+                  {displayedVariants.length} {language === 'en' ? 'products' : 'produits'}
+                  {searchResults.length > 0 && (
+                    <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                      🤖 Résultats intelligents
+                    </span>
+                  )}
                 </p>
+                {searchResults.length > 0 && (
+                  <Button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSearchResults([]);
+                    }}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Voir tous les produits
+                  </Button>
+                )}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8">
-                {filteredVariants.map((variant) => (
+                {displayedVariants.map((variant) => (
                   <VariantCard
                     key={variant.id}
                     variant={variant}
@@ -404,6 +491,12 @@ function StorefrontContent() {
           )}
         </div>
       </div>
+
+      {/* Chatbot Widget */}
+      <ChatbotWidget 
+        shopName={shop.name}
+        language={language}
+      />
     </div>
   );
 }
@@ -415,3 +508,4 @@ export default function StorefrontPage() {
     </CartProvider>
   );
 }
+

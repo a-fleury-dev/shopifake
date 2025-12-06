@@ -5,10 +5,12 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
 const IMAGE_SERVICE_URL = import.meta.env.VITE_IMAGE_SERVICE_URL || 'http://localhost:5002';
+const CHATBOT_SERVICE_URL = import.meta.env.VITE_CHATBOT_SERVICE_URL || 'http://localhost:8000';
 
 export const API_CONFIG = {
   baseUrl: API_BASE_URL,
   imageServiceUrl: IMAGE_SERVICE_URL,
+  chatbotServiceUrl: CHATBOT_SERVICE_URL,
   endpoints: {
     shops: {
       byAdmin: (adminId: number) => `${API_BASE_URL}/api/v1/shops/admin/${adminId}`,
@@ -39,6 +41,11 @@ export const API_CONFIG = {
     variants: {
       byProduct: (shopId: number, productId: number) => `${API_BASE_URL}/api/shops/${shopId}/variants/by-product/${productId}`,
       byId: (shopId: number, variantId: number) => `${API_BASE_URL}/api/shops/${shopId}/variants/${variantId}`,
+    },
+    // Chatbot Service
+    chatbot: {
+      search: () => `${CHATBOT_SERVICE_URL}/search/shop`,
+      chat: () => `${CHATBOT_SERVICE_URL}/chat`,
     },
     // Prêt pour d'autres services
     // auth: {
