@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useParams, type MetaFunction } from 'react-router';
-import { Search, ShoppingCart, X, Menu } from 'lucide-react';
+import { Search, ShoppingCart, X, Menu, Loader2 } from 'lucide-react';
 import { CartProvider, useCart } from '../contexts/CartContext';
 import { storefrontTranslations } from '../lib/translations/storefront';
 import { VariantCard } from '../components/storefront/VariantCard';
@@ -10,17 +10,17 @@ import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Separator } from '../components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../components/ui/sheet';
-import { 
-  mockStorefrontShop, 
-  mockCategories, 
-  getAllVariantsWithProductInfo 
-} from '../lib/mock/storefront-data';
-import type { ProductVariant } from '../lib/types/storefront';
+import { fetchRootCategories, fetchCategoryChildren, fetchCategoryBreadcrumb, fetchProductsWithVariantsByCategory } from '../clients/storefrontApiClient';
+import { fetchShopByDomain } from '../clients/shopApiClient';
+import { transformCategory, transformProductsWithVariants } from '../lib/storefront/transform';
+import type { ProductVariant, Category } from '../lib/types/storefront';
+import type { ShopDTO } from '../lib/shops/dto';
+import type { CategoryDTO } from '../lib/storefront/dto';
 
 export const meta: MetaFunction = () => {
   return [
-    { title: `${mockStorefrontShop.name} - Shop` },
-    { name: 'description', content: mockStorefrontShop.description || 'Welcome to our shop' },
+    { title: 'Shop - shopifake' },
+    { name: 'description', content: 'Welcome to our shop' },
   ];
 };
 
@@ -35,29 +35,106 @@ function StorefrontContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // TODO: Replace with actual API call based on domainName
-  const shop = mockStorefrontShop;
-  const categories = mockCategories;
-  const allVariants = getAllVariantsWithProductInfo();
+  // API state
+  const [shop, setShop] = useState<ShopDTO | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [currentCategoryId, setCurrentCategoryId] = useState<number | null>(null);
+  const [breadcrumb, setBreadcrumb] = useState<Category[]>([]);
+  const [allVariants, setAllVariants] = useState<ProductVariant[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredVariants = useMemo(() => {
-    const getCategoryWithChildren = (categoryId: number): number[] => {
-      const ids = [categoryId];
-      const children = categories.filter(cat => cat.parentId === categoryId);
-      children.forEach(child => {
-        ids.push(...getCategoryWithChildren(child.id));
-      });
-      return ids;
+  // Load shop and initial data
+  useEffect(() => {
+    const loadStorefront = async () => {
+      try {
+        setIsLoading(true);
+        
+        if (!domainName) {
+          throw new Error('Domain name is required');
+        }
+        
+        // Fetch shop data by domain name
+        const shopData = await fetchShopByDomain(domainName);
+        setShop(shopData);
+        
+        // Fetch root categories
+        const categoriesData = await fetchRootCategories(shopData.id);
+        setCategories(categoriesData.map(transformCategory));
+        setBreadcrumb([]);
+        setCurrentCategoryId(null);
+        
+        setError(null);
+      } catch (err) {
+        console.error('Failed to load storefront:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load storefront');
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    let filtered = allVariants.filter(v => v.isActive);
+    loadStorefront();
+  }, [domainName]);
 
-    if (selectedCategoryId !== null) {
-      const categoryIds = getCategoryWithChildren(selectedCategoryId);
-      filtered = filtered.filter(v => 
-        v.categoryId && categoryIds.includes(v.categoryId)
-      );
-    }
+  // Load categories and breadcrumb when navigating
+  useEffect(() => {
+    const loadCategoryLevel = async () => {
+      if (!shop) return;
+      
+      try {
+        if (currentCategoryId === null) {
+          // At root level - show root categories
+          const categoriesData = await fetchRootCategories(shop.id);
+          setCategories(categoriesData.map(transformCategory));
+          setBreadcrumb([]);
+        } else {
+          // In a category - show its children and breadcrumb
+          const [childrenData, breadcrumbData] = await Promise.all([
+            fetchCategoryChildren(shop.id, currentCategoryId),
+            fetchCategoryBreadcrumb(shop.id, currentCategoryId),
+          ]);
+          setCategories(childrenData.map(transformCategory));
+          setBreadcrumb(breadcrumbData.map(transformCategory));
+        }
+      } catch (err) {
+        console.error('Failed to load category level:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load categories');
+      }
+    };
+
+    loadCategoryLevel();
+  }, [currentCategoryId, shop]);
+
+  // Load variants when category changes
+  useEffect(() => {
+    const loadVariants = async () => {
+      if (!shop) return;
+      
+      try {
+        const shopId = shop.id;
+        
+        if (selectedCategoryId === null) {
+          // No category selected - show nothing or all categories
+          setAllVariants([]);
+        } else {
+          // Fetch products with variants for selected category
+          const productsWithVariants = await fetchProductsWithVariantsByCategory(shopId, selectedCategoryId);
+          const variants = transformProductsWithVariants(productsWithVariants);
+          setAllVariants(variants);
+        }
+      } catch (err) {
+        console.error('Failed to load variants:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load products');
+      }
+    };
+
+    loadVariants();
+  }, [selectedCategoryId, shop]);
+
+  const filteredVariants = useMemo(() => {
+    // Variants are already filtered by category from the API
+    // We only need to filter by search query and active status
+    let filtered = allVariants.filter(v => v.isActive);
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -68,7 +145,7 @@ function StorefrontContent() {
     }
 
     return filtered;
-  }, [allVariants, selectedCategoryId, searchQuery, categories]);
+  }, [allVariants, searchQuery]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -82,6 +159,32 @@ function StorefrontContent() {
       navigate(`/${domainName}/products/${variant.productSlug}`);
     }
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading shop...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !shop) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="text-6xl mb-4">😞</div>
+          <h2 className="text-2xl font-bold mb-2">Shop not found</h2>
+          <p className="text-muted-foreground mb-4">{error || 'Unable to load shop'}</p>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -243,8 +346,10 @@ function StorefrontContent() {
         <aside className="hidden lg:block w-80 border-r border-border/30 sticky top-[73px] h-[calc(100vh-73px)] overflow-hidden glass-strong-transparent">
           <CategorySidebar
             categories={categories}
+            breadcrumb={breadcrumb}
             selectedCategoryId={selectedCategoryId}
             onSelectCategory={setSelectedCategoryId}
+            onNavigateToCategory={setCurrentCategoryId}
             allCategoriesLabel={t.navigation.allCategories}
             language={language}
           />
@@ -255,11 +360,13 @@ function StorefrontContent() {
           <SheetContent side="left" className="w-80 p-0">
             <CategorySidebar
               categories={categories}
+              breadcrumb={breadcrumb}
               selectedCategoryId={selectedCategoryId}
               onSelectCategory={(id) => {
                 setSelectedCategoryId(id);
                 setIsSidebarOpen(false);
               }}
+              onNavigateToCategory={setCurrentCategoryId}
               allCategoriesLabel={t.navigation.allCategories}
               language={language}
             />

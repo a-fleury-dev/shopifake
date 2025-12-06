@@ -12,10 +12,12 @@ import {
   Moon,
   Sun,
   ArrowRight,
+  Hash,
 } from 'lucide-react';
 import type { Route } from './+types/auth';
 import { translations } from '../lib/translations';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../lib/hooks/useAuth';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -43,6 +45,7 @@ interface User {
 export default function Auth() {
   const navigate = useNavigate();
   const { theme, setTheme, language } = useTheme();
+  const { login } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
 
   // Form states
@@ -50,6 +53,9 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState<'admin' | 'manager'>('manager');
+  
+  // Temporary: Admin ID for development (default to 1)
+  const [adminId, setAdminId] = useState<string>('1');
 
   // Error and success states
   const [error, setError] = useState('');
@@ -96,8 +102,15 @@ export default function Auth() {
       setSuccess(t.auth.success.loginSuccess);
       setIsLoading(false);
 
-      // Store user and auth time in localStorage
+      // Store user and auth time in localStorage + temporary admin_id
       setTimeout(() => {
+        const parsedAdminId = parseInt(adminId, 10);
+        if (isNaN(parsedAdminId) || parsedAdminId <= 0) {
+          setError('Invalid admin ID');
+          return;
+        }
+        
+        login(parsedAdminId);
         localStorage.setItem('shopifake_user', JSON.stringify(mockUser));
         localStorage.setItem('shopifake_auth_time', Date.now().toString());
         navigate('/shops');
@@ -141,8 +154,15 @@ export default function Auth() {
       setSuccess(t.auth.success.signupSuccess);
       setIsLoading(false);
 
-      // Store user and auth time in localStorage
+      // Store user and auth time in localStorage + temporary admin_id
       setTimeout(() => {
+        const parsedAdminId = parseInt(adminId, 10);
+        if (isNaN(parsedAdminId) || parsedAdminId <= 0) {
+          setError('Invalid admin ID');
+          return;
+        }
+        
+        login(parsedAdminId);
         localStorage.setItem('shopifake_user', JSON.stringify(mockUser));
         localStorage.setItem('shopifake_auth_time', Date.now().toString());
         navigate('/shops');
@@ -293,6 +313,32 @@ export default function Auth() {
               required
             />
             <p className="text-xs text-muted-foreground">{t.auth.form.passwordHint}</p>
+          </div>
+
+          {/* Temporary Admin ID Field - TODO: Remove when auth service is ready */}
+          <div className="space-y-3 p-4 rounded-2xl border-2 border-dashed border-orange-400/50 bg-orange-50/50 dark:bg-orange-950/20">
+            <Label
+              htmlFor="adminId"
+              className="text-foreground flex items-center gap-3 font-semibold"
+            >
+              <div className="w-8 h-8 rounded-full bg-orange-400/20 flex items-center justify-center">
+                <Hash className="w-4 h-4 text-orange-500" />
+              </div>
+              Admin ID (Temporary)
+            </Label>
+            <Input
+              id="adminId"
+              type="number"
+              min="1"
+              value={adminId}
+              onChange={(e) => setAdminId(e.target.value)}
+              placeholder="Enter admin ID (default: 1)"
+              className="ios-surface border-0 text-foreground h-14 text-base rounded-2xl px-5"
+              required
+            />
+            <p className="text-xs text-orange-600 dark:text-orange-400">
+              ⚠️ Development only - This will be replaced with proper authentication
+            </p>
           </div>
 
           {!isLogin && (
