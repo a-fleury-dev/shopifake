@@ -132,5 +132,4 @@ coverage/
 # ===========================
 *.tmp
 *.temp
-**/config
 **/local
