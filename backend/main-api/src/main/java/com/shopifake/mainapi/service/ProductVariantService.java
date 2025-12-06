@@ -30,6 +30,7 @@ public class ProductVariantService {
     private final AttributeDefinitionRepository attributeDefinitionRepository;
     private final VariantAttributeRepository variantAttributeRepository;
     private final ProductVariantMapper productVariantMapper;
+    private final ChatbotWebhookService chatbotWebhookService;
 
     /**
      * Récupère tous les variants d'un produit
@@ -121,6 +122,10 @@ public class ProductVariantService {
         savedVariant.setAttributes(variantAttributeRepository.saveAll(variantAttributes));
 
         log.info("Variant created with id: {}", savedVariant.getId());
+        
+        // Notify chatbot service asynchronously
+        chatbotWebhookService.notifyVariantCreated(savedVariant);
+        
         return productVariantMapper.toDto(savedVariant);
     }
 
@@ -152,6 +157,9 @@ public class ProductVariantService {
         ProductVariant updated = productVariantRepository.save(variant);
         log.info("Variant {} updated successfully", variantId);
 
+        // Notify chatbot service asynchronously
+        chatbotWebhookService.notifyVariantUpdated(updated);
+
         return productVariantMapper.toDto(updated);
     }
 
@@ -166,6 +174,9 @@ public class ProductVariantService {
         Product product = findProductById(variant.getProductId());
         validateProductBelongsToShop(product, shopId);
 
+        // Notify chatbot service before deletion
+        chatbotWebhookService.notifyVariantDeleted(variant);
+        
         productVariantRepository.delete(variant);
         log.info("Variant {} deleted successfully", variantId);
     }
