@@ -27,13 +27,9 @@ export interface ChatbotSearchResponse {
 }
 
 export interface ChatbotChatRequest {
-  message: string;
-  shop_id: number;
-  conversation_id?: string;
+  prompt: string;
 }
 
 export interface ChatbotChatResponse {
   response: string;
-  conversation_id: string;
-  products?: ChatbotSearchResult[];
 }

@@ -6,6 +6,7 @@ import { storefrontTranslations } from '../lib/translations/storefront';
 import { VariantCard } from '../components/storefront/VariantCard';
 import { CategorySidebar } from '../components/storefront/CategorySidebar';
 import { ImageWithFallback } from '../components/common/ImageWithFallback';
+import ChatbotWidget from '../components/storefront/ChatbotWidget';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Separator } from '../components/ui/separator';
@@ -490,6 +491,12 @@ function StorefrontContent() {
           )}
         </div>
       </div>
+
+      {/* Chatbot Widget */}
+      <ChatbotWidget 
+        shopName={shop.name}
+        language={language}
+      />
     </div>
   );
 }
@@ -501,3 +508,4 @@ export default function StorefrontPage() {
     </CartProvider>
   );
 }
+
