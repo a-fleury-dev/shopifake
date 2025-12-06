@@ -494,6 +494,7 @@ function StorefrontContent() {
 
       {/* Chatbot Widget */}
       <ChatbotWidget 
+        shopId={shop.id}
         shopName={shop.name}
         language={language}
       />

@@ -1,49 +1,134 @@
-import { useState, useMemo } from 'react';
-import { useNavigate, useParams, type MetaFunction } from 'react-router';
-import { ArrowLeft, ShoppingCart, Minus, Plus, Check } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useParams, useSearchParams, type MetaFunction } from 'react-router';
+import { ArrowLeft, ShoppingCart, Minus, Plus, Check, Loader2 } from 'lucide-react';
 import { CartProvider, useCart } from '../contexts/CartContext';
 import { storefrontTranslations } from '../lib/translations/storefront';
 import { ImageWithFallback } from '../components/common/ImageWithFallback';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
-import { getProductBySlug } from '../lib/mock/storefront-data';
-export const meta: MetaFunction = ({ params }) => {
-  const product = getProductBySlug(params.slug || '');
+import { fetchShopByDomain } from '../clients/shopApiClient';
+import { fetchAllProductsWithVariants } from '../clients/storefrontApiClient';
+import { transformProductsWithVariants } from '../lib/storefront/transform';
+import type { ProductVariant } from '../lib/types/storefront';
+export const meta: MetaFunction = () => {
   return [
-    { title: product ? `${product.name} - Shop` : 'Product - Shop' },
-    { name: 'description', content: product?.description || 'Product details' },
+    { title: 'Product - Shop' },
+    { name: 'description', content: 'Product details' },
   ];
 };
+
+interface Product {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  variants: ProductVariant[];
+  attributeDefinitions: Array<{ name: string; values: string[] }>;
+}
 
 function ProductDetailContent() {
   const navigate = useNavigate();
   const { domainName, slug } = useParams();
+  const [searchParams] = useSearchParams();
   const language = 'en'; // TODO: Add language detection/selection
   const t = storefrontTranslations[language];
   const { addToCart } = useCart();
   
   const [quantity, setQuantity] = useState(1);
   const [currentVariantId, setCurrentVariantId] = useState<number | null>(null);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const product = getProductBySlug(slug || '');
+  // Load shop and product data
+  useEffect(() => {
+    const loadData = async () => {
+      if (!domainName || !slug) return;
+
+      try {
+        setIsLoading(true);
+        
+        // Fetch shop
+        const shopData = await fetchShopByDomain(domainName);
+
+        // Fetch all products with variants
+        const productsWithVariants = await fetchAllProductsWithVariants(shopData.id);
+        const allVariants = transformProductsWithVariants(productsWithVariants);
+
+        // Find product by slug
+        const foundProduct = allVariants.find(v => v.productSlug === slug);
+        
+        if (!foundProduct) {
+          setError('Product not found');
+          setIsLoading(false);
+          return;
+        }
+
+        // Group all variants by product
+        const productVariants = allVariants.filter(v => v.productSlug === slug);
+
+        // Extract attribute definitions
+        const attributeMap = new Map<string, Set<string>>();
+        productVariants.forEach(variant => {
+          variant.attributes.forEach(attr => {
+            const key = attr.attributeName || `attr_${attr.attributeDefinitionId}`;
+            if (!attributeMap.has(key)) {
+              attributeMap.set(key, new Set());
+            }
+            attributeMap.get(key)!.add(attr.attributeValue);
+          });
+        });
+
+        const attributeDefinitions = Array.from(attributeMap.entries()).map(([name, values]) => ({
+          name,
+          values: Array.from(values),
+        }));
+
+        const productData: Product = {
+          id: foundProduct.productId,
+          name: foundProduct.productName || 'Product',
+          slug: foundProduct.productSlug || slug,
+          description: foundProduct.productDescription,
+          variants: productVariants,
+          attributeDefinitions,
+        };
+
+        setProduct(productData);
+
+        // Set initial variant from query param or first variant
+        const variantIdParam = searchParams.get('variant');
+        if (variantIdParam) {
+          const variantId = parseInt(variantIdParam, 10);
+          const variant = productVariants.find(v => v.id === variantId);
+          if (variant) {
+            setCurrentVariantId(variantId);
+          } else {
+            setCurrentVariantId(productVariants[0].id);
+          }
+        } else {
+          setCurrentVariantId(productVariants[0].id);
+        }
+
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Failed to load product:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load product');
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [domainName, slug, searchParams]);
 
   // Get unique values for each attribute
   const attributeOptions = useMemo(() => {
     if (!product) return {};
     
-    const options: Record<number, Set<string>> = {};
+    const options: Record<string, Set<string>> = {};
     
     product.attributeDefinitions.forEach(def => {
-      options[def.id] = new Set();
-      product.variants.forEach(variant => {
-        if (variant.isActive) {
-          const attr = variant.attributes.find(a => a.attributeDefinitionId === def.id);
-          if (attr) {
-            options[def.id].add(attr.attributeValue);
-          }
-        }
-      });
+      options[def.name] = new Set(def.values);
     });
     
     return options;
@@ -56,11 +141,24 @@ function ProductDetailContent() {
     }
   }, [product, currentVariantId]);
 
-  if (!product) {
+  // Loading state
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">{t.errors.productNotFound}</h2>
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading product...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !product) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">{error || t.errors.productNotFound}</h2>
           <Button onClick={() => navigate(`/${domainName}`)} variant="outline">
             <ArrowLeft className="w-4 h-4 mr-2" />
             {t.product.backToStore}
@@ -103,20 +201,23 @@ function ProductDetailContent() {
   // Group variants by attribute combinations for selection
   const attributeDefinitions = product.attributeDefinitions;
   const currentAttributes = currentVariant.attributes.reduce((acc, attr) => {
-    acc[attr.attributeDefinitionId] = attr.attributeValue;
+    const key = attr.attributeName || `attr_${attr.attributeDefinitionId}`;
+    acc[key] = attr.attributeValue;
     return acc;
-  }, {} as Record<number, string>);
+  }, {} as Record<string, string>);
 
-  const handleAttributeChange = (attributeDefId: number, value: string) => {
+  const handleAttributeChange = (attributeName: string, value: string) => {
     // Find variant matching the new attribute combination
-    const newAttributes = { ...currentAttributes, [attributeDefId]: value };
+    const newAttributes = { ...currentAttributes, [attributeName]: value };
     
     const matchingVariant = product.variants.find(variant => {
       if (!variant.isActive) return false;
       
       return attributeDefinitions.every(def => {
-        const variantAttr = variant.attributes.find(a => a.attributeDefinitionId === def.id);
-        return variantAttr && variantAttr.attributeValue === newAttributes[def.id];
+        const variantAttr = variant.attributes.find(a => 
+          (a.attributeName || `attr_${a.attributeDefinitionId}`) === def.name
+        );
+        return variantAttr && variantAttr.attributeValue === newAttributes[def.name];
       });
     });
     
@@ -185,9 +286,9 @@ function ProductDetailContent() {
                 {t.product.attributes}
               </h3>
               <div className="flex flex-wrap gap-2">
-                {currentVariant.attributes.map((attr, index) => (
-                  <Badge key={index} variant="secondary" className="px-3 py-1">
-                    {attr.attributeName}: {attr.attributeValue}
+                {currentVariant.attributes.map((attr) => (
+                  <Badge key={attr.id} variant="secondary" className="px-3 py-1">
+                    {attr.attributeName || 'Attribute'}: {attr.attributeValue}
                   </Badge>
                 ))}
               </div>
@@ -217,17 +318,17 @@ function ProductDetailContent() {
                   <h3 className="text-lg font-semibold">{t.product.variants}</h3>
                   
                   {attributeDefinitions.map(def => (
-                    <div key={def.id}>
+                    <div key={def.name}>
                       <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                        {def.attributeName}
+                        {def.name}
                       </label>
                       <div className="flex flex-wrap gap-2">
-                        {Array.from(attributeOptions[def.id] || []).map(value => {
-                          const isSelected = currentAttributes[def.id] === value;
+                        {Array.from(attributeOptions[def.name] || []).map(value => {
+                          const isSelected = currentAttributes[def.name] === value;
                           return (
                             <button
                               key={value}
-                              onClick={() => handleAttributeChange(def.id, value)}
+                              onClick={() => handleAttributeChange(def.name, value)}
                               className={`px-4 py-2 rounded-xl transition-all ${
                                 isSelected
                                   ? 'liquid-button text-primary-foreground'

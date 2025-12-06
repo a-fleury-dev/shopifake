@@ -1,19 +1,26 @@
 import { useState, useEffect, useRef } from 'react';
-import { sendChatMessage } from '../../clients/chatbotApiClient';
+import { useNavigate, useParams } from 'react-router';
+import { sendAssistMessage } from '../../clients/chatbotApiClient';
+import { API_CONFIG } from '../../config/api';
+import type { ChatbotSearchResult } from '../../lib/chatbot/dto';
 
 interface Message {
   id: string;
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
+  products?: ChatbotSearchResult[];
 }
 
 interface ChatbotWidgetProps {
+  shopId: number;
   shopName: string;
   language: 'en' | 'fr';
 }
 
-export default function ChatbotWidget({ shopName, language }: ChatbotWidgetProps) {
+export default function ChatbotWidget({ shopId, shopName, language }: ChatbotWidgetProps) {
+  const navigate = useNavigate();
+  const { domainName } = useParams();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -54,15 +61,61 @@ export default function ChatbotWidget({ shopName, language }: ChatbotWidgetProps
     setIsLoading(true);
 
     try {
-      const response = await sendChatMessage({ 
-        prompt: inputValue
+      const response = await sendAssistMessage({ 
+        prompt: inputValue,
+        top_k: 5,
+        shop_id: shopId
       });
+      
+      // Verify each variant belongs to the current shop and get product slug
+      const shopProducts: ChatbotSearchResult[] = [];
+      
+      for (const result of response.results) {
+        try {
+          // Check if variant exists in current shop
+          const variantResponse = await fetch(API_CONFIG.endpoints.variants.byId(shopId, result.id), {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+            },
+          });
+          
+          if (variantResponse.ok) {
+            const variantData = await variantResponse.json();
+            
+            // Get product to retrieve slug
+            const productResponse = await fetch(API_CONFIG.endpoints.products.byId(shopId, variantData.productId), {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json',
+              },
+            });
+            
+            if (productResponse.ok) {
+              const productData = await productResponse.json();
+              // Add product slug to result
+              shopProducts.push({
+                ...result,
+                product_slug: productData.slug
+              });
+            }
+          }
+        } catch (error) {
+          // Variant doesn't exist in this shop or error, skip it
+          console.log(`Variant ${result.id} not found in shop ${shopId}`);
+        }
+      }
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: response.response,
+        content: shopProducts.length === 0 
+          ? (language === 'fr' 
+            ? "Pas de produits correspondants sur cette boutique. " + response.response
+            : "No matching products in this shop. " + response.response)
+          : response.response,
         role: 'assistant',
-        timestamp: new Date()
+        timestamp: new Date(),
+        products: shopProducts
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -152,7 +205,7 @@ export default function ChatbotWidget({ shopName, language }: ChatbotWidgetProps
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}
               >
                 <div
                   className={`max-w-[80%] rounded-2xl px-4 py-2 ${
@@ -178,6 +231,50 @@ export default function ChatbotWidget({ shopName, language }: ChatbotWidgetProps
                 >
                   <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                 </div>
+
+                {/* Product Links */}
+                {message.products && message.products.length > 0 && (
+                  <div className="mt-2 space-y-1 max-w-[80%]">
+                    {message.products.map((product) => (
+                      <button
+                        key={product.id}
+                        onClick={() => {
+                          // Navigate to product page with variant ID as query param
+                          navigate(`/${domainName}/products/${product.product_slug}?variant=${product.id}`);
+                          setIsOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-lg text-xs transition-all duration-200 hover:scale-[1.02]"
+                        style={{
+                          background: 'rgba(147, 51, 234, 0.1)',
+                          backdropFilter: 'blur(10px)',
+                          border: '1px solid rgba(147, 51, 234, 0.2)',
+                        }}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-medium text-purple-700">{product.sku}</span>
+                          <span className="text-green-600 font-semibold">{product.price}€</span>
+                        </div>
+                        <div className="text-gray-600 mt-1">{product.product_name}</div>
+                        {Object.keys(product.attributes).length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {Object.entries(product.attributes).map(([key, value]) => (
+                              <span
+                                key={key}
+                                className="text-[10px] px-2 py-0.5 rounded-full"
+                                style={{
+                                  background: 'rgba(147, 51, 234, 0.1)',
+                                  color: '#7c3aed',
+                                }}
+                              >
+                                {key}: {value}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
 

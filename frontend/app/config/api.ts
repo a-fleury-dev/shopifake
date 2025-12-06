@@ -45,7 +45,7 @@ export const API_CONFIG = {
     // Chatbot Service
     chatbot: {
       search: () => `${CHATBOT_SERVICE_URL}/search/shop`,
-      chat: () => `${CHATBOT_SERVICE_URL}/chat`,
+      assist: () => `${CHATBOT_SERVICE_URL}/assist`,
     },
     // Prêt pour d'autres services
     // auth: {
