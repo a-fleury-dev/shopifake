@@ -57,6 +57,22 @@ public class ShopController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/domain/{domainName}")
+    @Operation(
+            summary = "Obtenir une boutique par son nom de domaine",
+            description = "Récupère les détails d'une boutique spécifique à partir de son nom de domaine"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Boutique trouvée"),
+            @ApiResponse(responseCode = "404", description = "Boutique non trouvée")
+    })
+    public ResponseEntity<ShopResponse> getShopByDomainName(
+            @Parameter(description = "Nom de domaine de la boutique", required = true, example = "sport-elite")
+            @PathVariable String domainName) {
+        ShopResponse response = shopService.getShopByDomainName(domainName);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
     @Operation(
             summary = "Obtenir toutes les boutiques",
