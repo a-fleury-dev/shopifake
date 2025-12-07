@@ -1,4 +1,4 @@
-FROM quay.io/keycloak/keycloak:26.4.0
+FROM quay.io/keycloak/keycloak:25.0.6
 
 USER root
 
