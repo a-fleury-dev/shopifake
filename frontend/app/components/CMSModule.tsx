@@ -1689,6 +1689,18 @@ export function CMSModule({ language, currentUser, initialSection = 'pages' }: C
       </div>
 
       {/* Section Content */}
+      <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+        <div className="text-center">
+          <p className="text-2xl text-muted-foreground font-semibold">
+            {language === 'fr' ? 'À implémenter' : 'To be implemented'}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* COMMENTED OUT - To be implemented
       {editingPageId ? (
         <div className="p-8">
           <p className="text-muted-foreground">Page editor coming soon...</p>
@@ -1704,6 +1716,4 @@ export function CMSModule({ language, currentUser, initialSection = 'pages' }: C
           {activeSection === 'collections' && renderCollectionsSection()}
         </>
       )}
-    </div>
-  );
-}
+*/

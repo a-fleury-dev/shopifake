@@ -125,8 +125,73 @@ export async function fetchCategoryTree(shopId: number): Promise<CategoryTreeDTO
 }
 
 /**
+ * Create a new category
+ */
+export async function createCategory(
+  shopId: number,
+  data: { label: string; parentId?: number | null; position?: number }
+): Promise<CategoryDTO> {
+  const response = await fetch(API_CONFIG.endpoints.categories.create(shopId), {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to create category: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Update a category
+ */
+export async function updateCategory(
+  shopId: number,
+  categoryId: number,
+  data: { label: string; parentId?: number | null; position?: number }
+): Promise<CategoryDTO> {
+  const response = await fetch(API_CONFIG.endpoints.categories.update(shopId, categoryId), {
+    method: 'PUT',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to update category: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
  * PRODUCTS
  */
+
+/**
+ * Fetch all products of a shop
+ */
+export async function fetchProductsByShop(shopId: number): Promise<ProductDTO[]> {
+  const response = await fetch(API_CONFIG.endpoints.products.byShop(shopId), {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
 
 /**
  * Fetch products of a category
@@ -141,6 +206,60 @@ export async function fetchProductsByCategory(shopId: number, categoryId: number
 
   if (!response.ok) {
     throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Create a new product
+ */
+export async function createProduct(
+  shopId: number,
+  data: {
+    categoryId: number;
+    shopId: number;
+    name: string;
+    description?: string;
+    isActive?: boolean;
+    attributeDefinitions?: Array<{ attributeName: string; position?: number }>;
+  }
+): Promise<ProductDTO> {
+  const response = await fetch(API_CONFIG.endpoints.products.create(shopId), {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to create product: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Update a product
+ */
+export async function updateProduct(
+  shopId: number,
+  productId: number,
+  data: { name: string; description?: string; isActive?: boolean }
+): Promise<ProductDTO> {
+  const response = await fetch(API_CONFIG.endpoints.products.update(shopId, productId), {
+    method: 'PUT',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to update product: ${response.status} ${response.statusText}`);
   }
 
   return response.json();
@@ -205,6 +324,68 @@ export async function fetchVariantById(shopId: number, variantId: number): Promi
 }
 
 /**
+ * Create a new variant
+ * attributes: Map where key is attributeDefinitionId and value is attributeValue
+ */
+export async function createVariant(
+  shopId: number,
+  data: {
+    productId: number;
+    shopId: number;
+    sku: string;
+    price: number;
+    stock: number;
+    isActive?: boolean;
+    attributes: Record<number, string>; // Map<attributeDefinitionId, attributeValue>
+  }
+): Promise<ProductVariantDTO> {
+  const response = await fetch(API_CONFIG.endpoints.variants.create(shopId), {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to create variant: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Update a variant
+ * Note: attributes cannot be modified after creation
+ */
+export async function updateVariant(
+  shopId: number,
+  variantId: number,
+  data: {
+    sku: string;
+    price: number;
+    stock: number;
+    isActive?: boolean;
+  }
+): Promise<ProductVariantDTO> {
+  const response = await fetch(API_CONFIG.endpoints.variants.update(shopId, variantId), {
+    method: 'PUT',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to update variant: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
  * COMBINED OPERATIONS
  */
 
@@ -245,6 +426,69 @@ export async function fetchAllProductsWithVariants(
 
   if (!response.ok) {
     throw new Error(`Failed to fetch all products with variants: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * STOCK MANAGEMENT
+ */
+
+export interface StockActionDTO {
+  id: number;
+  sku: string;
+  actionType: 'ADD' | 'REMOVE';
+  quantity: number;
+  createdAt: string;
+}
+
+export interface StockSummaryDTO {
+  totalUnits: number;
+  totalValue: number;
+  recentActions: StockActionDTO[];
+}
+
+/**
+ * Perform a stock action (ADD or REMOVE)
+ */
+export async function performStockAction(
+  shopId: number,
+  data: {
+    sku: string;
+    actionType: 'ADD' | 'REMOVE';
+    quantity: number;
+  }
+): Promise<void> {
+  const response = await fetch(API_CONFIG.endpoints.stock.action(shopId), {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to perform stock action: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Fetch stock summary with recent actions history
+ */
+export async function fetchStockSummary(shopId: number): Promise<StockSummaryDTO> {
+  const response = await fetch(API_CONFIG.endpoints.stock.summary(shopId), {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch stock summary: ${response.status} ${response.statusText}`);
   }
 
   return response.json();
