@@ -97,7 +97,7 @@ services:
       postgres-main:
         condition: service_healthy
       chatbot-service:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
       interval: 10s
@@ -192,10 +192,12 @@ services:
       KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/shopifake/protocol/openid-connect/certs
     depends_on:
       keycloak:
-        condition: service_healthy
+        condition: service_started
     networks:
       - shopifake-network
     restart: unless-stopped
+
+
   # Qdrant Vector Database for chatbot
   qdrant:
     image: qdrant/qdrant:latest
@@ -208,10 +210,11 @@ services:
     networks:
       - shopifake-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:6333/healthz || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:6333/ || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     restart: unless-stopped
 
   # Chatbot Service
@@ -232,7 +235,7 @@ services:
       - ./chatbot-service/.env
     depends_on:
       qdrant:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
       interval: 10s

@@ -3,28 +3,28 @@ spring:
     name: main-api
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/main_api
-    username: user
-    password: pwd
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/main_api}
+    username: ${DATABASE_USERNAME:user}
+    password: ${DATABASE_PASSWORD:pwd}
     driver-class-name: org.postgresql.Driver
 
   flyway:
     enabled: true
     baseline-on-migrate: true
     clean-disabled: false
-    locations: classpath:db/migration,classpath:db/dev
+    locations: classpath:db/migration
     default-schema: public
-    validate-on-migrate: false
-    out-of-order: true
+    validate-on-migrate: true
+    out-of-order: false
 
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
+        format_sql: false
 
   cloud:
     config:
@@ -44,17 +44,17 @@ management:
         include: health,info,metrics
   endpoint:
     health:
-      show-details: always
+      show-details: when-authorized
 
 # Image Service Configuration
 image-service:
-  url: http://image-service:8080
+  url: ${IMAGE_SERVICE_URL:http://image-service:8080}
 
 # Webhook Configuration
 webhook:
-  enabled: true
+  enabled: ${WEBHOOK_ENABLED:true}
   chatbot:
-    url: http://chatbot-service:8080
-    timeout: 5000
-    fail-silently: true
+    url: ${WEBHOOK_CHATBOT_URL:http://chatbot-service:8080}
+    timeout: ${WEBHOOK_CHATBOT_TIMEOUT:5000}
+    fail-silently: ${WEBHOOK_CHATBOT_FAIL_SILENTLY:true}
 
