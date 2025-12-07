@@ -1,205 +1,506 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Label } from '../../ui/label';
-import { Card, CardContent, CardHeader } from '../../ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Badge } from '../../ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../ui/table';
-import { Search, Plus, Save, X, Package as PackageIcon } from 'lucide-react';
 import {
-  searchProducts,
-  getVariantsByProduct,
-  getAttributeDefinitionsByProduct,
-  getVariantAttributes,
-  mockProductVariants,
-  getVariantBySku,
-} from '../../../lib/mock/backoffice-data';
-import type { Product, ProductVariant, AttributeDefinition } from '../../../lib/types/backoffice';
+  Plus,
+  Minus,
+  Search,
+  Package,
+  Loader2,
+  ArrowUpCircle,
+  ArrowDownCircle,
+  CheckCircle,
+} from 'lucide-react';
+import {
+  fetchProductsByShop,
+  fetchVariantsByProduct,
+  performStockAction,
+} from '../../../clients/storefrontApiClient';
+import type { ProductDTO, ProductVariantDTO } from '../../../lib/storefront/dto';
 
 interface StockViewProps {
   language: 'en' | 'fr';
   currentUser: any;
+  shopId?: number;
 }
 
-export function StockView({ language }: StockViewProps) {
-  const [searchSku, setSearchSku] = useState('');
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
-  const [stockChange, setStockChange] = useState(0);
+export function StockView({ language, shopId }: StockViewProps) {
+  // Data state
+  const [products, setProducts] = useState<ProductDTO[]>([]);
+  const [variants, setVariants] = useState<ProductVariantDTO[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [isLoadingVariants, setIsLoadingVariants] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // UI state
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariantDTO | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isPerformingAction, setIsPerformingAction] = useState(false);
+  const [actionSuccess, setActionSuccess] = useState(false);
 
-  const text = {
+  // Stock action form
+  const [quantity, setQuantity] = useState('');
+
+  // Translations
+  const t = {
     en: {
       title: 'Stock Management',
-      searchBySku: 'Search by SKU...',
+      selectProduct: 'Select a product',
+      selectVariant: 'Select a variant',
+      noProductSelected: 'No product selected',
+      noVariantSelected: 'No variant selected',
+      selectProductHint: 'Please select a product from the list to view its variants',
+      selectVariantHint: 'Please select a variant to manage its stock',
+      products: 'Products',
+      variants: 'Variants',
+      stockManagement: 'Stock Management',
+      noVariants: 'No variants',
+      search: 'Search products...',
       currentStock: 'Current Stock',
+      quantity: 'Quantity',
+      quantityPlaceholder: 'Enter quantity',
       addStock: 'Add Stock',
       removeStock: 'Remove Stock',
-      stockChange: 'Stock Change',
-      save: 'Save Changes',
-      cancel: 'Cancel',
       sku: 'SKU',
       price: 'Price',
       stock: 'Stock',
+      status: 'Status',
+      active: 'Active',
+      inactive: 'Inactive',
       attributes: 'Attributes',
-      noVariant: 'No variant found with this SKU',
-      recentVariants: 'Recent Variants',
+      loading: 'Loading...',
+      processing: 'Processing...',
+      error: 'Error',
+      success: 'Stock updated successfully',
+      actionAdded: 'units added',
+      actionRemoved: 'units removed',
+      required: 'Required',
+      mustBePositive: 'Quantity must be positive',
     },
     fr: {
       title: 'Gestion du Stock',
-      searchBySku: 'Rechercher par SKU...',
+      selectProduct: 'Sélectionner un produit',
+      selectVariant: 'Sélectionner un variant',
+      noProductSelected: 'Aucun produit sélectionné',
+      noVariantSelected: 'Aucun variant sélectionné',
+      selectProductHint: 'Veuillez sélectionner un produit dans la liste pour voir ses variants',
+      selectVariantHint: 'Veuillez sélectionner un variant pour gérer son stock',
+      products: 'Produits',
+      variants: 'Variants',
+      stockManagement: 'Gestion du Stock',
+      noVariants: 'Aucun variant',
+      search: 'Rechercher des produits...',
       currentStock: 'Stock Actuel',
+      quantity: 'Quantité',
+      quantityPlaceholder: 'Entrer la quantité',
       addStock: 'Ajouter du Stock',
       removeStock: 'Retirer du Stock',
-      stockChange: 'Modification du Stock',
-      save: 'Enregistrer',
-      cancel: 'Annuler',
       sku: 'SKU',
       price: 'Prix',
       stock: 'Stock',
+      status: 'Statut',
+      active: 'Actif',
+      inactive: 'Inactif',
       attributes: 'Attributs',
-      noVariant: 'Aucune variante trouvée avec ce SKU',
-      recentVariants: 'Variantes Récentes',
+      loading: 'Chargement...',
+      processing: 'Traitement...',
+      error: 'Erreur',
+      success: 'Stock mis à jour avec succès',
+      actionAdded: 'unités ajoutées',
+      actionRemoved: 'unités retirées',
+      required: 'Requis',
+      mustBePositive: 'La quantité doit être positive',
     },
   };
 
-  const t = text[language];
+  const translations = t[language];
 
-  const handleSearch = () => {
-    if (!searchSku.trim()) return;
-    const variant = getVariantBySku(searchSku.trim());
-    setSelectedVariant(variant || null);
-    setStockChange(0);
+  // Load products on mount
+  useEffect(() => {
+    if (shopId) {
+      loadProducts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shopId]);
+
+  // Load variants when product is selected
+  useEffect(() => {
+    if (shopId && selectedProductId) {
+      loadVariants(selectedProductId);
+    } else {
+      setVariants([]);
+      setSelectedVariant(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shopId, selectedProductId]);
+
+  // Clear success message after 3 seconds
+  useEffect(() => {
+    if (actionSuccess) {
+      const timer = setTimeout(() => {
+        setActionSuccess(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [actionSuccess]);
+
+  const loadProducts = async () => {
+    if (!shopId) return;
+
+    setIsLoadingProducts(true);
+    setError(null);
+
+    try {
+      const data = await fetchProductsByShop(shopId);
+      setProducts(data);
+    } catch (err) {
+      console.error('Failed to load products:', err);
+      setError('Failed to load products');
+    } finally {
+      setIsLoadingProducts(false);
+    }
   };
 
-  const handleSaveStock = () => {
-    if (!selectedVariant || stockChange === 0) return;
-    // TODO: Call API to update stock
-    console.log('Updating stock:', {
-      variantId: selectedVariant.id,
-      stockChange,
-    });
+  const loadVariants = async (productId: number) => {
+    if (!shopId) return;
+
+    setIsLoadingVariants(true);
+    setError(null);
+
+    try {
+      const data = await fetchVariantsByProduct(shopId, productId);
+      setVariants(data);
+    } catch (err) {
+      console.error('Failed to load variants:', err);
+      setError('Failed to load variants');
+    } finally {
+      setIsLoadingVariants(false);
+    }
+  };
+
+  const handleProductSelect = (productId: number) => {
+    setSelectedProductId(productId);
     setSelectedVariant(null);
-    setStockChange(0);
-    setSearchSku('');
+    setQuantity('');
   };
+
+  const handleVariantSelect = (variant: ProductVariantDTO) => {
+    setSelectedVariant(variant);
+    setQuantity('');
+  };
+
+  const handleStockAction = async (actionType: 'ADD' | 'REMOVE') => {
+    if (!shopId || !selectedVariant) return;
+
+    const qty = parseInt(quantity);
+    if (!qty || qty <= 0) {
+      alert(translations.mustBePositive);
+      return;
+    }
+
+    setIsPerformingAction(true);
+    setError(null);
+
+    try {
+      await performStockAction(shopId, {
+        sku: selectedVariant.sku,
+        actionType,
+        quantity: qty,
+      });
+
+      // Update local variant stock
+      const updatedVariants = variants.map(v => {
+        if (v.id === selectedVariant.id) {
+          const newStock = actionType === 'ADD' 
+            ? v.stock + qty 
+            : Math.max(0, v.stock - qty);
+          return { ...v, stock: newStock };
+        }
+        return v;
+      });
+      setVariants(updatedVariants);
+
+      // Update selected variant
+      const updatedVariant = updatedVariants.find(v => v.id === selectedVariant.id);
+      if (updatedVariant) {
+        setSelectedVariant(updatedVariant);
+      }
+
+      setQuantity('');
+      setActionSuccess(true);
+    } catch (err) {
+      console.error('Failed to perform stock action:', err);
+      setError('Failed to update stock');
+    } finally {
+      setIsPerformingAction(false);
+    }
+  };
+
+  // Filter products by search
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const selectedProduct = products.find(p => p.id === selectedProductId);
+
+  if (!shopId) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">{translations.error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-foreground">{t.title}</h1>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">{translations.title}</h2>
+          <p className="text-muted-foreground">
+            {selectedProduct ? selectedProduct.name : translations.selectProduct}
+            {selectedVariant && ` → ${selectedVariant.sku}`}
+          </p>
+        </div>
+      </div>
 
-      <Card className="liquid-card">
-        <CardHeader>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              placeholder={t.searchBySku}
-              value={searchSku}
-              onChange={(e) => setSearchSku(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="pl-10"
-            />
-          </div>
-        </CardHeader>
+      {/* Success Message */}
+      {actionSuccess && (
+        <div className="p-4 bg-green-50 border border-green-200 rounded-md text-green-800 flex items-center gap-2">
+          <CheckCircle className="h-5 w-5" />
+          {translations.success}
+        </div>
+      )}
 
-        {selectedVariant && (
+      {/* Error display */}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-md text-red-800">
+          {error}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Products List (Column 1) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              {translations.products}
+            </CardTitle>
+          </CardHeader>
           <CardContent className="space-y-4">
-            <div className="ios-surface p-4 rounded-lg space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-mono font-semibold">{selectedVariant.sku}</div>
-                  <div className="text-sm text-muted-foreground">
-                    ${selectedVariant.price.toFixed(2)}
-                  </div>
-                </div>
-                <Badge variant="outline" className="text-lg px-4 py-2">
-                  {selectedVariant.stock} {t.stock}
-                </Badge>
-              </div>
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={translations.search}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="stockChange">{t.stockChange}</Label>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setStockChange((prev) => prev - 1)}
-                    disabled={stockChange <= -selectedVariant.stock}
+            {/* Products List */}
+            <div className="space-y-2 max-h-[600px] overflow-y-auto">
+              {isLoadingProducts ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : filteredProducts.length === 0 ? (
+                <p className="text-center text-muted-foreground py-4">
+                  {translations.noProductSelected}
+                </p>
+              ) : (
+                filteredProducts.map((product) => (
+                  <button
+                    key={product.id}
+                    onClick={() => handleProductSelect(product.id)}
+                    className={`w-full text-left p-3 rounded-md transition-colors ${
+                      selectedProductId === product.id
+                        ? 'bg-primary text-primary-foreground'
+                        : 'hover:bg-muted'
+                    }`}
                   >
-                    -
-                  </Button>
-                  <Input
-                    id="stockChange"
-                    type="number"
-                    value={stockChange}
-                    onChange={(e) => setStockChange(parseInt(e.target.value) || 0)}
-                    className="text-center"
-                  />
-                  <Button variant="outline" onClick={() => setStockChange((prev) => prev + 1)}>
-                    +
-                  </Button>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {t.currentStock}: {selectedVariant.stock} → {selectedVariant.stock + stockChange}
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <Button onClick={handleSaveStock} className="liquid-button" disabled={stockChange === 0}>
-                  <Save className="w-4 h-4 mr-2" />
-                  {t.save}
-                </Button>
-                <Button variant="outline" onClick={() => setSelectedVariant(null)}>
-                  <X className="w-4 h-4 mr-2" />
-                  {t.cancel}
-                </Button>
-              </div>
+                    <div className="font-medium">{product.name}</div>
+                  </button>
+                ))
+              )}
             </div>
           </CardContent>
-        )}
+        </Card>
 
-        {!selectedVariant && searchSku && (
+        {/* Variants List (Column 2) */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{translations.variants}</CardTitle>
+          </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-muted-foreground">{t.noVariant}</div>
+            {!selectedProductId ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Package className="h-12 w-12 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  {translations.selectProductHint}
+                </p>
+              </div>
+            ) : isLoadingVariants ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : variants.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Package className="h-12 w-12 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">{translations.noVariants}</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                {variants.map((variant) => (
+                  <button
+                    key={variant.id}
+                    onClick={() => handleVariantSelect(variant)}
+                    className={`w-full text-left p-3 rounded-md transition-colors ${
+                      selectedVariant?.id === variant.id
+                        ? 'bg-primary text-primary-foreground'
+                        : 'hover:bg-muted'
+                    }`}
+                  >
+                    <div className="font-medium mb-1">{variant.sku}</div>
+                    <div className="text-sm opacity-80 flex items-center gap-2">
+                      <span>{translations.stock}: {variant.stock}</span>
+                      <Badge 
+                        variant={variant.isActive ? 'default' : 'secondary'}
+                        className="text-xs"
+                      >
+                        {variant.isActive ? translations.active : translations.inactive}
+                      </Badge>
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {Object.entries(variant.attributes).map(([name, value]) => (
+                        <span key={name} className="text-xs opacity-70">
+                          {name}: {value}
+                        </span>
+                      ))}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </CardContent>
-        )}
-      </Card>
+        </Card>
 
-      {/* Recent variants table */}
-      <Card className="liquid-card">
-        <CardHeader>
-          <h3 className="font-semibold">{t.recentVariants}</h3>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t.sku}</TableHead>
-                <TableHead>{t.price}</TableHead>
-                <TableHead>{t.stock}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {mockProductVariants.slice(0, 10).map((variant) => (
-                <TableRow
-                  key={variant.id}
-                  className="cursor-pointer"
-                  onClick={() => {
-                    setSearchSku(variant.sku);
-                    setSelectedVariant(variant);
-                    setStockChange(0);
-                  }}
-                >
-                  <TableCell className="font-mono text-sm">{variant.sku}</TableCell>
-                  <TableCell>${variant.price.toFixed(2)}</TableCell>
-                  <TableCell>
-                    <Badge variant={variant.stock < 20 ? 'destructive' : 'default'}>
-                      {variant.stock}
+        {/* Stock Management (Columns 3-4) */}
+        <div className="lg:col-span-2">
+          {!selectedVariant ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                <Package className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">
+                  {translations.noVariantSelected}
+                </h3>
+                <p className="text-muted-foreground max-w-md">
+                  {translations.selectVariantHint}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>{translations.stockManagement}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Variant Details */}
+                <div className="p-4 bg-muted rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">{selectedVariant.sku}</h3>
+                    <Badge variant={selectedVariant.isActive ? 'default' : 'secondary'}>
+                      {selectedVariant.isActive ? translations.active : translations.inactive}
                     </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(selectedVariant.attributes).map(([name, value]) => (
+                      <Badge key={name} variant="outline">
+                        {name}: {value}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <div className="text-sm text-muted-foreground">{translations.price}</div>
+                      <div className="text-xl font-bold">${selectedVariant.price.toFixed(2)}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">{translations.currentStock}</div>
+                      <div className="text-xl font-bold">{selectedVariant.stock}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stock Actions */}
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="quantity">
+                      {translations.quantity} <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="quantity"
+                      type="number"
+                      min="1"
+                      value={quantity}
+                      onChange={(e) => setQuantity(e.target.value)}
+                      placeholder={translations.quantityPlaceholder}
+                      disabled={isPerformingAction}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <Button
+                      onClick={() => handleStockAction('ADD')}
+                      disabled={isPerformingAction || !quantity}
+                      className="w-full"
+                      variant="default"
+                    >
+                      {isPerformingAction ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          {translations.processing}
+                        </>
+                      ) : (
+                        <>
+                          <ArrowUpCircle className="h-4 w-4 mr-2" />
+                          {translations.addStock}
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => handleStockAction('REMOVE')}
+                      disabled={isPerformingAction || !quantity}
+                      className="w-full"
+                      variant="destructive"
+                    >
+                      {isPerformingAction ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          {translations.processing}
+                        </>
+                      ) : (
+                        <>
+                          <ArrowDownCircle className="h-4 w-4 mr-2" />
+                          {translations.removeStock}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

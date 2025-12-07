@@ -33,16 +33,27 @@ export const API_CONFIG = {
       byId: (shopId: number, categoryId: number) => `${API_BASE_URL}/api/shops/${shopId}/categories/${categoryId}`,
       children: (shopId: number, categoryId: number) => `${API_BASE_URL}/api/shops/${shopId}/categories/${categoryId}/children`,
       breadcrumb: (shopId: number, categoryId: number) => `${API_BASE_URL}/api/shops/${shopId}/categories/${categoryId}/breadcrumb`,
+      create: (shopId: number) => `${API_BASE_URL}/api/shops/${shopId}/categories`,
+      update: (shopId: number, categoryId: number) => `${API_BASE_URL}/api/shops/${shopId}/categories/${categoryId}`,
     },
     products: {
+      byShop: (shopId: number) => `${API_BASE_URL}/api/shops/${shopId}/products`,
       byCategory: (shopId: number, categoryId: number) => `${API_BASE_URL}/api/shops/${shopId}/products/by-category/${categoryId}`,
       byCategoryWithVariants: (shopId: number, categoryId: number) => `${API_BASE_URL}/api/shops/${shopId}/products/by-category/${categoryId}/with-variants`,
       allWithVariants: (shopId: number) => `${API_BASE_URL}/api/shops/${shopId}/products/with-variants`,
       byId: (shopId: number, productId: number) => `${API_BASE_URL}/api/shops/${shopId}/products/${productId}`,
+      create: (shopId: number) => `${API_BASE_URL}/api/shops/${shopId}/products`,
+      update: (shopId: number, productId: number) => `${API_BASE_URL}/api/shops/${shopId}/products/${productId}`,
     },
     variants: {
       byProduct: (shopId: number, productId: number) => `${API_BASE_URL}/api/shops/${shopId}/variants/by-product/${productId}`,
       byId: (shopId: number, variantId: number) => `${API_BASE_URL}/api/shops/${shopId}/variants/${variantId}`,
+      create: (shopId: number) => `${API_BASE_URL}/api/shops/${shopId}/variants`,
+      update: (shopId: number, variantId: number) => `${API_BASE_URL}/api/shops/${shopId}/variants/${variantId}`,
+    },
+    stock: {
+      action: (shopId: number) => `${API_BASE_URL}/api/shops/${shopId}/stock/action`,
+      summary: (shopId: number) => `${API_BASE_URL}/api/shops/${shopId}/stock/summary`,
     },
     // Chatbot Service
     chatbot: {

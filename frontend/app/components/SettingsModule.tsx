@@ -457,6 +457,22 @@ export function SettingsModule({ language, initialSection = 'store' }: SettingsM
 
   // Render content based on initialSection (controlled by Dashboard sidebar)
   const renderContent = () => {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+        <div className="text-center">
+          <p className="text-2xl text-muted-foreground font-semibold">
+            {language === 'fr' ? 'À implémenter' : 'To be implemented'}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  return <div className="w-full">{renderContent()}</div>;
+}
+
+/* COMMENTED OUT - To be implemented
+  const renderContent = () => {
     switch (initialSection) {
       case 'store':
         return renderStoreInformation();
@@ -466,6 +482,4 @@ export function SettingsModule({ language, initialSection = 'store' }: SettingsM
         return renderStoreInformation();
     }
   };
-
-  return <div className="w-full">{renderContent()}</div>;
-}
+*/
