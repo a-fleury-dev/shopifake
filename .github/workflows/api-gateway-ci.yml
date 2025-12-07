@@ -1,4 +1,4 @@
-name: API Gateway - CI Pipeline
+name: Image Service - CI Pipeline
 
 on:
   push:
@@ -7,9 +7,10 @@ on:
       - staging
       - main
       - 'feature/**'
+      - feat/ci-cd
     paths:
-      - 'backend/api-gateway/**'
-      - '.github/workflows/api-gateway-ci.yml'
+      - 'backend/image-service/**'
+      - '.github/workflows/image-service-ci.yml'
       - '.github/workflows/lint.yml'
       - '.github/workflows/test.yml'
       - '.github/workflows/build.yml'
@@ -19,7 +20,7 @@ on:
       - staging
       - main
     paths:
-      - 'backend/api-gateway/**'
+      - 'backend/image-service/**'
 
 # Permissions required by the reusable `build.yml` workflow
 permissions:
@@ -30,17 +31,17 @@ jobs:
   lint:
     uses: ./.github/workflows/lint.yml
     with:
-      service-path: backend/api-gateway
+      service-path: backend/image-service
 
   tests:
     uses: ./.github/workflows/test.yml
     needs: lint
     with:
-      service-path: backend/api-gateway
+      service-path: backend/image-service
 
   build:
     uses: ./.github/workflows/build.yml
     needs: tests
     with:
-      service-path: backend/api-gateway
-      service-name: api-gateway
+      service-path: backend/image-service
+      service-name: image-service
