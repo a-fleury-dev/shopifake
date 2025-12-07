@@ -55,7 +55,7 @@ spec:
         resources:
           requests:
             memory: "768Mi"
-            cpu: "200m"  # Augmenté pour un démarrage plus rapide
+            cpu: "300m"  # Augmenté pour un démarrage plus rapide
           limits:
             memory: "1.5Gi"
             cpu: "1000m"  # Augmenté pour permettre un démarrage rapide

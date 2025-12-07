@@ -4,14 +4,11 @@ metadata:
   name: auth-service-config
   namespace: shopifake-prod
 data:
-  # Application
-  SPRING_APPLICATION_NAME: "auth-service"
-  SERVER_PORT: "8080"
 
   # Keycloak Configuration
   KEYCLOAK_URL: "http://keycloak.shopifake-prod.svc.cluster.local:8080"
   KEYCLOAK_REALM: "shopifake"
-  KEYCLOAK_CLIENT_ID: "shopifake-client"
+  KEYCLOAK_CLIENT_ID: "shopifake"
 
   # OAuth2 Resource Server
   SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: "https://keycloak.shopifake.duckdns.org/realms/shopifake"
