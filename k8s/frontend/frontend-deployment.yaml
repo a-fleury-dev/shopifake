@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: shopifake-prod
+spec:
+  replicas: 2  # On lance 2 instances de l'application pour la haute disponibilité
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      imagePullSecrets:
+      - name: ghcr-secret  # Secret pour télécharger l'image depuis GitHub Container Registry
+      containers:
+      - name: frontend
+        image: ghcr.io/a-fleury-dev/shopifake/frontend:latest  # À ADAPTER avec votre registry
+        ports:
+        - containerPort: 5173  # Port sur lequel l'application écoute dans le conteneur
+        envFrom:
+        - configMapRef:
+            name: frontend-config  # Injecte toutes les variables du ConfigMap
+        resources:
+          requests:  # Ressources minimales garanties
+            memory: "256Mi"
+            cpu: "100m"
+          limits:  # Ressources maximales autorisées
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:  # Vérifie si l'application est en vie
+          httpGet:
+            path: /
+            port: 5173
+          initialDelaySeconds: 30  # Attend 30s avant la première vérification
+          periodSeconds: 10  # Vérifie toutes les 10s
+        readinessProbe:  # Vérifie si l'application est prête à recevoir du trafic
+          httpGet:
+            path: /
+            port: 5173
+          initialDelaySeconds: 10
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: shopifake-prod
+spec:
+  selector:
+    app: frontend  # Connecte ce service aux pods avec le label "app: frontend"
+  ports:
+  - port: 80  # Port exposé par le service
+    targetPort: 5173  # Port du conteneur vers lequel rediriger
+  type: ClusterIP  # Service interne au cluster, accessible via l'Ingress
+

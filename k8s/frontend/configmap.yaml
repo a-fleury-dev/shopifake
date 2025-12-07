@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: shopifake-prod
+data:
+  NODE_ENV: "production"
+  PORT: "5173"
+  VITE_API_BASE_URL: "http://main-api:5001"
+  VITE_IMAGE_SERVICE_URL: "http://image-service:5002"
+  VITE_AUTH_SERVICE_URL: "http://auth-service:5003"
+  VITE_CHATBOT_SERVICE_URL: "http://chatbot-service:5004"
+

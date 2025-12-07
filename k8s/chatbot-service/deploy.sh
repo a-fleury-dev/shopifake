@@ -1,0 +1,104 @@
+#!/bin/bash
+
+# Script pour construire et déployer chatbot-service sur Kubernetes
+# Usage: ./deploy.sh [tag]
+
+set -e
+
+# Couleurs pour les messages
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+# Variables
+REGISTRY="ghcr.io/a-fleury-dev/shopifake"
+IMAGE_NAME="chatbot-service"
+TAG="${1:-latest}"
+FULL_IMAGE="${REGISTRY}/${IMAGE_NAME}:${TAG}"
+
+echo -e "${GREEN}🚀 Déploiement de chatbot-service${NC}"
+echo "Image: ${FULL_IMAGE}"
+echo ""
+
+# 1. Build l'image pour AMD64 (plateforme du serveur)
+echo -e "${YELLOW}📦 Construction de l'image Docker pour linux/amd64...${NC}"
+cd ../../backend/chatbot-service
+docker buildx build --platform linux/amd64 -t ${IMAGE_NAME}:${TAG} --load .
+docker tag ${IMAGE_NAME}:${TAG} ${FULL_IMAGE}
+echo -e "${GREEN}✅ Image construite${NC}"
+echo ""
+
+# 2. Push vers le registry
+echo -e "${YELLOW}⬆️  Push vers GitHub Container Registry...${NC}"
+docker buildx build --platform linux/amd64 -t ${FULL_IMAGE} --push .
+echo -e "${GREEN}✅ Image pushée${NC}"
+echo ""
+
+# 3. Retour au répertoire k8s
+cd ../../k8s/chatbot-service
+
+# 4. Appliquer les manifests Kubernetes
+echo -e "${YELLOW}☸️  Déploiement sur Kubernetes...${NC}"
+
+# Vérifier/créer le secret pour GHCR si nécessaire
+if ! kubectl get secret ghcr-secret -n shopifake-prod &> /dev/null; then
+    echo -e "${YELLOW}⚠️  Secret ghcr-secret non trouvé dans shopifake-prod${NC}"
+    echo "Veuillez créer le secret ghcr-secret dans le namespace shopifake-prod"
+    exit 1
+fi
+
+# Appliquer le ConfigMap
+kubectl apply -f configmap.yaml
+
+# Vérifier que le secret chatbot-secret existe
+if ! kubectl get secret chatbot-secret -n shopifake-prod &> /dev/null; then
+    echo -e "${RED}❌ Secret chatbot-secret non trouvé dans shopifake-prod${NC}"
+    echo "Veuillez créer le secret chatbot-secret avec les variables nécessaires"
+    exit 1
+fi
+
+# Déployer Qdrant (doit être déployé en premier)
+echo -e "${YELLOW}🗄️  Déploiement de Qdrant pour chatbot-service...${NC}"
+kubectl apply -f qdrant-deployment.yaml
+
+# Attendre que Qdrant soit prêt
+echo -e "${YELLOW}⏳ Attente que Qdrant soit prêt...${NC}"
+kubectl wait --for=condition=ready pod -l app=qdrant -n shopifake-prod --timeout=300s
+
+# Appliquer le Deployment
+echo -e "${YELLOW}🤖 Déploiement du chatbot-service...${NC}"
+kubectl apply -f chatbot-service-deployment.yaml
+
+# Si le tag n'est pas latest, mettre à jour l'image
+if [ "${TAG}" != "latest" ]; then
+    echo -e "${YELLOW}🔄 Mise à jour de l'image vers ${TAG}...${NC}"
+    kubectl set image deployment/chatbot-service \
+        chatbot-service=${FULL_IMAGE} \
+        -n shopifake-prod
+fi
+
+# Appliquer l'Ingress
+kubectl apply -f chatbot-service-ingress.yaml
+
+echo ""
+echo -e "${GREEN}✅ Déploiement terminé !${NC}"
+echo ""
+echo -e "${YELLOW}📊 Statut du déploiement:${NC}"
+kubectl rollout status deployment/chatbot-service -n shopifake-prod --timeout=5m
+
+echo ""
+echo -e "${GREEN}🎉 chatbot-service déployé avec succès !${NC}"
+echo ""
+echo -e "${YELLOW}🔍 Commandes utiles:${NC}"
+echo "  Pods:         kubectl get pods -n shopifake-prod -l app=chatbot-service"
+echo "  Logs:         kubectl logs -n shopifake-prod -l app=chatbot-service -f"
+echo "  Service:      kubectl get svc -n shopifake-prod chatbot-service"
+echo "  Ingress:      kubectl get ingress -n shopifake-prod chatbot-service-ingress"
+echo "  Certificate:  kubectl get certificate -n shopifake-prod chatbot-service-tls"
+echo ""
+echo -e "${YELLOW}🌐 Accès:${NC}"
+echo "  HTTP:  http://chatbot.shopifake.duckdns.org"
+echo "  HTTPS: https://chatbot.shopifake.duckdns.org"
+echo ""
+

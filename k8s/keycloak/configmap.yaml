@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-config
+  namespace: shopifake-prod
+data:
+  # Keycloak Mode
+  KEYCLOAK_MODE: "prod"
+
+  # Admin credentials (à changer en production!)
+  KEYCLOAK_ADMIN: "admin"
+
+  # Database configuration
+  KC_DB: "postgres"
+  KC_DB_URL: "jdbc:postgresql://postgres-keycloak:5432/keycloak"
+  KC_DB_USERNAME: "keycloak_user"
+
+  # Hostname configuration
+  KC_HOSTNAME: "keycloak.shopifake.duckdns.org"
+  KC_HOSTNAME_STRICT: "false"
+  KC_HOSTNAME_STRICT_BACKCHANNEL: "false"
+
+  # HTTP configuration
+  KC_HTTP_ENABLED: "true"
+  KC_PROXY: "edge"
+  KC_PROXY_HEADERS: "xforwarded"
+
+  # Health checks
+  KC_HEALTH_ENABLED: "true"
+  KC_METRICS_ENABLED: "true"
+
+  # Realm import
+  IMPORT_FILE_PATH: "/opt/keycloak/import/realm-export.json"
+  OVERWRITE_EXISTING_REALM: "false"
+
+  # Logging
+  KC_LOG_LEVEL: "info"
+

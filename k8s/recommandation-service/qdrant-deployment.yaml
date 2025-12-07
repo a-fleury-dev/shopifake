@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: qdrant
+  namespace: shopifake-prod
 spec:
   replicas: 1
   selector:
@@ -23,8 +24,8 @@ spec:
           mountPath: /qdrant/storage
         resources:
           requests:
-            memory: "512Mi"
-            cpu: "250m"
+            memory: "256Mi"
+            cpu: "100m"
           limits:
             memory: "1Gi"
             cpu: "500m"
@@ -36,6 +37,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: qdrant-service
+  namespace: shopifake-prod
 spec:
   selector:
     app: qdrant
