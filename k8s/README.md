@@ -20,17 +20,8 @@ Ce projet utilise une architecture de namespaces **par environnement** plutôt q
 
 #### 🚀 Déploiement Complet (Recommandé)
 
-Le script `deploy.sh` à la racine déploie tous les services dans le bon ordre :
 
-```bash
-# Déployer tous les services avec le tag 'latest'
-./deploy.sh
-
-# Déployer tous les services avec un tag spécifique
-./deploy.sh v1.0.0
-```
-
-**Ordre de déploiement automatique :**
+**Ordre de déploiement :**
 1. Chatbot Service (avec Qdrant)
 2. Recommandation Service (avec Qdrant)
 3. Image Service (avec PostgreSQL + MinIO)
@@ -39,31 +30,15 @@ Le script `deploy.sh` à la racine déploie tous les services dans le bon ordre 
 6. Main API
 7. Frontend
 
-Le script effectue automatiquement :
-- ✅ Vérification des prérequis (kubectl, docker, cluster)
-- ✅ Création/vérification des namespaces
-- ✅ Vérification des secrets nécessaires
-- ✅ Build et push des images Docker
-- ✅ Déploiement des dépendances (bases de données, Qdrant, etc.)
-- ✅ Attente que chaque service soit prêt avant de passer au suivant
-- ✅ Affichage du résumé et du temps total
-
 #### 📦 Déploiement Manuel
 
 1. **Créer les namespaces** :
    ```bash
    kubectl apply -f namespaces.yaml
    ```
-
-2. **Déployer un service individuellement** (exemple avec auth-service) :
-   ```bash
-   cd auth-service
-   ./deploy.sh
-   # ou avec un tag spécifique
-   ./deploy.sh v1.0.0
    ```
 
-3. **Déployer manuellement dans l'ordre recommandé** :
+2**Déployer manuellement dans l'ordre recommandé** :
    ```bash
    cd chatbot-service && ./deploy.sh && cd ..
    cd recommandation-service && ./deploy.sh && cd ..
