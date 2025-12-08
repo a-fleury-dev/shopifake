@@ -64,6 +64,7 @@ jobs:
       # ==================================================
       - name: Create image-service secret
         run: |
+          kubectl delete secret image-service-secrets -n shopifake-prod
           kubectl create secret generic image-service-secrets \
             --namespace=shopifake-prod \
             --from-literal=SPRING_DATASOURCE_URL="${{ secrets.IMAGE_DS_URL }}" \
@@ -78,6 +79,7 @@ jobs:
       # ==================================================
       - name: Create postgres-image secret
         run: |
+          kubectl delete secret postgres-image-secret -n shopifake-prod
           kubectl create secret generic postgres-image-secret \
             --namespace=shopifake-prod \
             --from-literal=POSTGRES_DB="${{ secrets.IMAGE_PG_DB }}" \

@@ -62,9 +62,10 @@ jobs:
       # ==================================================
       - name: Create main-api secret
         run: |
+          kubectl delete secret main-api-secrets -n shopifake-prod
           kubectl create secret generic main-api-secrets \
             --namespace=shopifake-prod \
-            --from-literal=db-username="${{ secrets.MAIN_API_PG_USER }}"
+            --from-literal=db-username="${{ secrets.MAIN_API_PG_USER }}" \
             --from-literal=db-password="${{ secrets.MAIN_API_PG_PASSWORD }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
@@ -73,6 +74,7 @@ jobs:
       # ==================================================
       - name: Create postgres-main secret
         run: |
+          kubectl delete secret postgres-main-secret -n shopifake-prod
           kubectl create secret generic postgres-main-secret \
             --namespace=shopifake-prod \
             --from-literal=POSTGRES_DB="${{ secrets.MAIN_API_PG_DB }}" \
