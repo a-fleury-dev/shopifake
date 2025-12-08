@@ -120,11 +120,6 @@ jobs:
 
       - name: Apply Kubernetes manifests
         run: |
-          # Apply namespace (cluster-scoped)
-          if [ -f "${{ inputs.k8s-manifests-path }}/namespace.yaml" ]; then
-            kubectl apply -f ${{ inputs.k8s-manifests-path }}/namespace.yaml
-          fi
-
           # Apply configmaps
           if [ -f "${{ inputs.k8s-manifests-path }}/configmap.yaml" ]; then
             kubectl -n $NAMESPACE apply -f ${{ inputs.k8s-manifests-path }}/configmap.yaml
