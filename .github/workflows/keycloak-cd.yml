@@ -45,7 +45,7 @@ jobs:
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
             ${{ env.IMAGE_NAME }}:latest
 
-  Secrets:
+  set-secrets:
     name: Set secrets
     needs: build
     if: github.event_name != 'pull_request'
@@ -87,7 +87,7 @@ jobs:
 
   deploy:
     name: Deploy to Kubernetes
-    needs: build
+    needs: set-secrets
     if: github.event_name != 'pull_request'
 
     uses: ./.github/workflows/deploy-k8s.yml

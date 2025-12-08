@@ -6,6 +6,7 @@ on:
       - develop
       - staging
       - main
+      - feat/ci-cd
       - 'feature/**'
     paths:
       - 'backend/chatbot-service/**'
