@@ -61,15 +61,6 @@ jobs:
           kubectl cluster-info
           kubectl get nodes
 
-      - name: Create image pull secret
-        run: |
-          kubectl create secret docker-registry ghcr-secret \
-            --docker-server=ghcr.io \
-            --docker-username=${{ github.actor }} \
-            --docker-password=${{ secrets.GHCR_PAT }} \
-            --namespace=$NAMESPACE \
-            --dry-run=client -o yaml | kubectl apply -f -
-
       - name: Create application secrets
         if: inputs.service-name == 'chatbot-service' || inputs.service-name == 'recommandation-service'
         env:
