@@ -56,7 +56,7 @@ jobs:
     needs: build
     if: github.event_name != 'pull_request'
 
-    uses: ./.github/workflows/deploy-to-k8s.yml
+    uses: ./.github/workflows/deploy-k8s.yml
     with:
       service-name: 'frontend'
       k8s-manifests-path: 'k8s/frontend'

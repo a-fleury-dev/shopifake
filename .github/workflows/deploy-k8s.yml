@@ -112,8 +112,8 @@ jobs:
           # Find all deployment files and update image tags to use commit SHA
           find ${{ inputs.k8s-manifests-path }} -name '*-deployment.yaml' -o -name 'deployment.yaml' | while read -r file; do
             # Update image tag from :latest to :${{ github.sha }}
-            sed -i "s|image: ghcr.io/${{ github.repository }}/${{ inputs.service-name }}:latest|image: ghcr.io/${{ github.repository }}/${{ inputs.service-name }}:${{ github.sha }}|g" "$file"
-            
+            sed -i "s|image: ghcr.io/.*/${{ inputs.service-name }}:latest|image: ghcr.io/${{ github.repository_owner }}/${{ inputs.service-name }}:${{ github.sha }}|g" "$file"          
+          
             echo "Updated deployment in $file:"
             grep "image:" "$file" || true
           done

@@ -46,54 +46,14 @@ jobs:
   deploy:
     needs: build
     if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/deploy-k8s.yml
+    with:
+      service-name: 'image-service'
+      k8s-manifests-path: 'k8s/image-service'
+      namespace-staging: 'shopifake-staging'
+      namespace-production: 'shopifake-prod'
+      deployments: 'image-service'
+    secrets:
+      KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
 
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-
-      - name: Configure kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 --decode > ~/.kube/config
-
-      # ------------------------------
-      # CREATE POSTGRES SECRET
-      # ------------------------------
-      - name: Create postgres secret
-        run: |
-          kubectl create secret generic postgres-secret \
-            --namespace=shopifake-prod \
-            --from-literal=POSTGRES_DB="${{ secrets.IMAGE_PG_DB }}" \
-            --from-literal=POSTGRES_USER="${{ secrets.IMAGE_PG_USER }}" \
-            --from-literal=POSTGRES_PASSWORD="${{ secrets.IMAGE_PG_PASSWORD }}" \
-            --dry-run=client -o yaml | kubectl apply -f -
-
-      # ------------------------------
-      # CREATE MINIO SECRET
-      # ------------------------------
-      - name: Create minio secret
-        run: |
-          kubectl create secret generic minio-secret \
-            --namespace=shopifake-prod \
-            --from-literal=MINIO_ROOT_USER="${{ secrets.IMAGE_MINIO_ROOT_USER }}" \
-            --from-literal=MINIO_ROOT_PASSWORD="${{ secrets.IMAGE_MINIO_ROOT_PASSWORD }}" \
-            --dry-run=client -o yaml | kubectl apply -f -
-
-      # ------------------------------
-      # CREATE IMAGE-SERVICE SECRET
-      # ------------------------------
-      - name: Create image-service secrets
-        run: |
-          kubectl create secret generic image-service-secrets \
-            --namespace=shopifake-prod \
-            --from-literal=SPRING_DATASOURCE_URL="${{ secrets.IMAGE_DS_URL }}" \
-            --from-literal=SPRING_DATASOURCE_USERNAME="${{ secrets.IMAGE_DS_USER }}" \
-            --from-literal=SPRING_DATASOURCE_PASSWORD="${{ secrets.IMAGE_DS_PASSWORD }}" \
-            --from-literal=MINIO_ENDPOINT="${{ secrets.IMAGE_MINIO_ENDPOINT }}" \
-            --from-literal=MINIO_ACCESS_KEY="${{ secrets.IMAGE_MINIO_ACCESS }}" \
-            --from-literal=MINIO_SECRET_KEY="${{ secrets.IMAGE_MINIO_SECRET }}" \
-            --dry-run=client -o yaml | kubectl apply -f -
   

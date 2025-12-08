@@ -83,7 +83,7 @@ jobs:
       # APPLY MANIFESTS: DB + API
       # ==================================================
       - name: Deploy to Kubernetes
-        uses: ./.github/workflows/deploy-to-k8s.yml
+        uses: ./.github/workflows/deploy-k8s.yml
         with:
           service-name: 'main-api'
           k8s-manifests-path: 'k8s/main-api'
