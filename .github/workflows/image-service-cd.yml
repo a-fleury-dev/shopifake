@@ -92,6 +92,7 @@ jobs:
       # ==================================================
       - name: Create minio secret
         run: |
+          kubectl delete secret minio-secret -n shopifake-prod
           kubectl create secret generic minio-secret \
             --namespace=shopifake-prod \
             --from-literal=MINIO_ENDPOINT="${{ secrets.IMAGE_MINIO_ENDPOINT }}"
