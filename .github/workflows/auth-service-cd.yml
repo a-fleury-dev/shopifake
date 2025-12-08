@@ -55,8 +55,7 @@ jobs:
     with:
       service-name: 'auth-service'
       k8s-manifests-path: 'k8s/auth-service'
-      namespace-staging: 'shopifake-staging'
-      namespace-production: 'shopifake-prod'
+      namespace: 'shopifake-prod'
       deployments: 'auth-service'
     secrets:
       KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}

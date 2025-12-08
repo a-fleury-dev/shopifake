@@ -60,8 +60,7 @@ jobs:
     with:
       service-name: 'frontend'
       k8s-manifests-path: 'k8s/frontend'
-      namespace-staging: 'shopifake-staging'
-      namespace-production: 'shopifake-prod'
+      namespace: 'shopifake-prod'
       deployments: 'frontend'
     secrets:
       KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}

@@ -84,9 +84,7 @@ jobs:
     with:
       service-name: chatbot-service
       k8s-manifests-path: k8s/chatbot-service
-      namespace-staging: shopifake-staging
-      namespace-production: shopifake-prod
-      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || '' }}
+      namespace: shopifake-prod
       deployments: chatbot-service,qdrant
     secrets:
       KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}

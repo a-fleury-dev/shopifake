@@ -45,8 +45,8 @@ jobs:
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
             ${{ env.IMAGE_NAME }}:latest
 
-  deploy:
-    name: Deploy Keycloak + Postgres
+  Secrets:
+    name: Set secrets
     needs: build
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
@@ -85,16 +85,16 @@ jobs:
             --from-literal=KC_DB_PASSWORD="${{ secrets.KEYCLOAK_DB_PASSWORD }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      # =====================================================
-      # APPLY MANIFESTS (Postgres + Keycloak)
-      # =====================================================
-      - name: Deploy to Kubernetes
-        uses: ./.github/workflows/deploy-k8s.yml
-        with:
-          service-name: 'keycloak'
-          k8s-manifests-path: 'k8s/keycloak'
-          namespace-staging: 'shopifake-staging'
-          namespace-production: 'shopifake-prod'
-          deployments: 'keycloak,postgres-keycloak'
-        secrets:
-          KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
+  deploy:
+    name: Deploy to Kubernetes
+    needs: build
+    if: github.event_name != 'pull_request'
+
+    uses: ./.github/workflows/deploy-k8s.yml
+    with:
+      service-name: 'keycloak'
+      k8s-manifests-path: 'k8s/keycloak'
+      namespace: 'shopifake-prod'
+      deployments: 'keycloak,postgres-keycloak'
+    secrets:
+      KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
