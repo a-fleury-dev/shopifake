@@ -23,7 +23,7 @@ spec:
         - configMapRef:
             name: main-api-config  # Variables d'environnement du ConfigMap
         - secretRef:
-            - name: main-api-secrets
+            name: main-api-secrets
         resources:
           requests:  # Ressources minimales garanties
             memory: "512Mi"
