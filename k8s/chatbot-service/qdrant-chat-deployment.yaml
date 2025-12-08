@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qdrant-chat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qdrant-chat
+  template:
+    metadata:
+      labels:
+        app: qdrant-chat
+    spec:
+      containers:
+      - name: qdrant-chat
+        image: qdrant/qdrant:latest
+        ports:
+        - containerPort: 6333
+        volumeMounts:
+        - name: qdrant-data
+          mountPath: /qdrant/storage
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Gi"
+            cpu: "500m"
+      volumes:
+      - name: qdrant-data
+        persistentVolumeClaim:
+          claimName: qdrant-chat-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant-chat
+spec:
+  selector:
+    app: qdrant-chat
+  ports:
+  - port: 6333
+    targetPort: 6333
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qdrant-chat-pvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

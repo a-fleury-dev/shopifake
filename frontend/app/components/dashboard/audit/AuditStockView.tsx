@@ -1,263 +1,149 @@
 import { useState } from 'react';
 import { StatCard } from './StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../ui/table';
-import { Badge } from '../../ui/badge';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-  Legend,
-} from 'recharts';
-import { Package, AlertTriangle, TrendingDown, DollarSign } from 'lucide-react';
+import { Button } from '../../ui/button';
+import { Package, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface StockViewProps {
   language: 'en' | 'fr';
   translations: any;
 }
 
-const stockInventoryData = [
-  {
-    id: 'INV-001',
-    product: 'Classic T-Shirt',
-    sku: 'TSH-001',
-    warehouse: 'Main Warehouse',
-    supplier: 'TextileCo',
-    stock: 145,
-    minStock: 50,
-    maxStock: 500,
-    status: 'In Stock',
-  },
-  {
-    id: 'INV-002',
-    product: 'Denim Jeans',
-    sku: 'JNS-002',
-    warehouse: 'Main Warehouse',
-    supplier: 'DenimPro',
-    stock: 23,
-    minStock: 30,
-    maxStock: 300,
-    status: 'Low Stock',
-  },
-  {
-    id: 'INV-003',
-    product: 'Summer Dress',
-    sku: 'DRS-003',
-    warehouse: 'Secondary Warehouse',
-    supplier: 'FashionHub',
-    stock: 0,
-    minStock: 20,
-    maxStock: 200,
-    status: 'Out of Stock',
-  },
-  {
-    id: 'INV-004',
-    product: 'Leather Jacket',
-    sku: 'JKT-004',
-    warehouse: 'Main Warehouse',
-    supplier: 'LeatherLux',
-    stock: 89,
-    minStock: 25,
-    maxStock: 150,
-    status: 'In Stock',
-  },
-  {
-    id: 'INV-005',
-    product: 'Running Shoes',
-    sku: 'SHO-005',
-    warehouse: 'Secondary Warehouse',
-    supplier: 'SportGear',
-    stock: 12,
-    minStock: 40,
-    maxStock: 400,
-    status: 'Low Stock',
-  },
-  {
-    id: 'INV-006',
-    product: 'Wool Sweater',
-    sku: 'SWT-006',
-    warehouse: 'Main Warehouse',
-    supplier: 'TextileCo',
-    stock: 487,
-    minStock: 30,
-    maxStock: 250,
-    status: 'Overstock',
-  },
+// Mock data for stock actions
+const stockActions = [
+  { id: 1, sku: 'TSH-001', quantity: 50, date: '2024-12-03 14:30', type: 'in' },
+  { id: 2, sku: 'JNS-002', quantity: -15, date: '2024-12-03 13:15', type: 'out' },
+  { id: 3, sku: 'DRS-003', quantity: 100, date: '2024-12-03 11:45', type: 'in' },
+  { id: 4, sku: 'JKT-004', quantity: -8, date: '2024-12-03 10:20', type: 'out' },
+  { id: 5, sku: 'SHO-005', quantity: 75, date: '2024-12-02 16:50', type: 'in' },
+  { id: 6, sku: 'SWT-006', quantity: -22, date: '2024-12-02 15:30', type: 'out' },
+  { id: 7, sku: 'TSH-001', quantity: -12, date: '2024-12-02 14:10', type: 'out' },
+  { id: 8, sku: 'JNS-002', quantity: 200, date: '2024-12-02 12:00', type: 'in' },
+  { id: 9, sku: 'DRS-003', quantity: -5, date: '2024-12-01 17:25', type: 'out' },
+  { id: 10, sku: 'JKT-004', quantity: 30, date: '2024-12-01 16:15', type: 'in' },
+  { id: 11, sku: 'SHO-005', quantity: -18, date: '2024-12-01 15:00', type: 'out' },
+  { id: 12, sku: 'SWT-006', quantity: 150, date: '2024-12-01 13:45', type: 'in' },
+  { id: 13, sku: 'TSH-001', quantity: -25, date: '2024-12-01 12:30', type: 'out' },
+  { id: 14, sku: 'JNS-002', quantity: -9, date: '2024-12-01 11:20', type: 'out' },
+  { id: 15, sku: 'DRS-003', quantity: 80, date: '2024-12-01 10:10', type: 'in' },
+  { id: 16, sku: 'JKT-004', quantity: -14, date: '2024-11-30 16:40', type: 'out' },
+  { id: 17, sku: 'SHO-005', quantity: 120, date: '2024-11-30 15:30', type: 'in' },
+  { id: 18, sku: 'SWT-006', quantity: -30, date: '2024-11-30 14:20', type: 'out' },
+  { id: 19, sku: 'TSH-001', quantity: 90, date: '2024-11-30 13:10', type: 'in' },
+  { id: 20, sku: 'JNS-002', quantity: -7, date: '2024-11-30 12:00', type: 'out' },
+  { id: 21, sku: 'DRS-003', quantity: -11, date: '2024-11-29 17:50', type: 'out' },
+  { id: 22, sku: 'JKT-004', quantity: 45, date: '2024-11-29 16:40', type: 'in' },
+  { id: 23, sku: 'SHO-005', quantity: -20, date: '2024-11-29 15:30', type: 'out' },
+  { id: 24, sku: 'SWT-006', quantity: 110, date: '2024-11-29 14:20', type: 'in' },
+  { id: 25, sku: 'TSH-001', quantity: -16, date: '2024-11-29 13:10', type: 'out' },
 ];
 
-const stockLevelsData = [
-  { month: 'Jan', totalStock: 2340, lowStock: 45, overstock: 89 },
-  { month: 'Feb', totalStock: 2456, lowStock: 38, overstock: 102 },
-  { month: 'Mar', totalStock: 2289, lowStock: 52, overstock: 76 },
-  { month: 'Apr', totalStock: 2567, lowStock: 41, overstock: 118 },
-  { month: 'May', totalStock: 2398, lowStock: 47, overstock: 95 },
-  { month: 'Jun', totalStock: 2634, lowStock: 35, overstock: 134 },
-];
+const ITEMS_PER_PAGE = 10;
 
 export function StockView({ language, translations }: StockViewProps) {
-  const [selectedWarehouse, setSelectedWarehouse] = useState('all');
-  const [selectedSupplier, setSelectedSupplier] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
   const dt = translations;
 
-  const lowStockCount = stockInventoryData.filter((item) => item.status === 'Low Stock').length;
-  const outOfStockCount = stockInventoryData.filter(
-    (item) => item.status === 'Out of Stock',
-  ).length;
-  const totalStock = stockInventoryData.reduce((sum, item) => sum + item.stock, 0);
+  // Calculate stock statistics
+  const totalUnits = 1247; // Mock total
+  const totalValue = 56320; // Mock value in currency
+  
+  // Pagination logic
+  const totalPages = Math.ceil(stockActions.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentActions = stockActions.slice(startIndex, endIndex);
 
-  const getStatusBadge = (status: string) => {
-    const statusMap: { [key: string]: 'default' | 'destructive' | 'secondary' | 'outline' } = {
-      'In Stock': 'default',
-      'Low Stock': 'secondary',
-      'Out of Stock': 'destructive',
-      Overstock: 'outline',
-    };
-    return <Badge variant={statusMap[status] || 'default'}>{status}</Badge>;
+  const handlePreviousPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-foreground">{dt.stock.title}</h1>
-
-        <div className="flex gap-3">
-          <Select value={selectedWarehouse} onValueChange={setSelectedWarehouse}>
-            <SelectTrigger className="w-[180px] ios-surface border-0 rounded-2xl">
-              <SelectValue placeholder={language === 'en' ? 'Warehouse' : 'Entrepôt'} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{language === 'en' ? 'All Warehouses' : 'Tous'}</SelectItem>
-              <SelectItem value="main">{language === 'en' ? 'Main' : 'Principal'}</SelectItem>
-              <SelectItem value="secondary">
-                {language === 'en' ? 'Secondary' : 'Secondaire'}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
-            <SelectTrigger className="w-[180px] ios-surface border-0 rounded-2xl">
-              <SelectValue placeholder={language === 'en' ? 'Supplier' : 'Fournisseur'} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{language === 'en' ? 'All Suppliers' : 'Tous'}</SelectItem>
-              <SelectItem value="textileco">TextileCo</SelectItem>
-              <SelectItem value="denimpro">DenimPro</SelectItem>
-              <SelectItem value="fashionhub">FashionHub</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <StatCard
-          title={dt.stock.totalProducts}
-          value={stockInventoryData.length.toString()}
+          title={language === 'en' ? 'Total Units in Stock' : 'Unités Totales en Stock'}
+          value={totalUnits.toLocaleString()}
           icon={Package}
         />
         <StatCard
-          title={dt.stock.lowStock}
-          value={lowStockCount.toString()}
-          icon={AlertTriangle}
-          trend={{ value: 12, isPositive: false }}
-        />
-        <StatCard
-          title={dt.stock.outOfStock}
-          value={outOfStockCount.toString()}
-          icon={TrendingDown}
-          trend={{ value: 3, isPositive: false }}
-        />
-        <StatCard
-          title={dt.stock.stockValue}
-          value={`$${(totalStock * 45).toLocaleString()}`}
+          title={language === 'en' ? 'Total Stock Value' : 'Valeur Totale du Stock'}
+          value={`$${totalValue.toLocaleString()}`}
           icon={DollarSign}
         />
       </div>
 
-      {/* Stock Levels Chart */}
-      <Card className="liquid-card">
-        <CardHeader>
-          <CardTitle>{language === 'en' ? 'Stock Levels Over Time' : 'Niveaux de Stock'}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={stockLevelsData}>
-              <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <RechartsTooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--background))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                }}
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="totalStock"
-                stroke="hsl(var(--primary))"
-                strokeWidth={2}
-                name={language === 'en' ? 'Total Stock' : 'Stock Total'}
-              />
-              <Line
-                type="monotone"
-                dataKey="lowStock"
-                stroke="hsl(var(--chart-3))"
-                strokeWidth={2}
-                name={language === 'en' ? 'Low Stock' : 'Stock Faible'}
-              />
-              <Line
-                type="monotone"
-                dataKey="overstock"
-                stroke="hsl(var(--chart-4))"
-                strokeWidth={2}
-                name={language === 'en' ? 'Overstock' : 'Surstock'}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Inventory Table */}
+      {/* Stock Actions Table */}
       <Card className="liquid-card">
         <CardHeader>
           <CardTitle>
-            {language === 'en' ? 'Inventory Details' : "Détails de l'Inventaire"}
+            {language === 'en' ? 'Recent Stock Actions' : 'Actions de Stock Récentes'}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{language === 'en' ? 'Product' : 'Produit'}</TableHead>
                 <TableHead>SKU</TableHead>
-                <TableHead>{language === 'en' ? 'Warehouse' : 'Entrepôt'}</TableHead>
-                <TableHead>{language === 'en' ? 'Stock' : 'Stock'}</TableHead>
-                <TableHead>{language === 'en' ? 'Min/Max' : 'Min/Max'}</TableHead>
-                <TableHead>{language === 'en' ? 'Status' : 'Statut'}</TableHead>
+                <TableHead>{language === 'en' ? 'Quantity' : 'Quantité'}</TableHead>
+                <TableHead>{language === 'en' ? 'Date' : 'Date'}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {stockInventoryData.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.product}</TableCell>
-                  <TableCell className="font-mono text-xs">{item.sku}</TableCell>
-                  <TableCell>{item.warehouse}</TableCell>
-                  <TableCell className="font-semibold">{item.stock}</TableCell>
-                  <TableCell className="text-muted-foreground text-xs">
-                    {item.minStock} / {item.maxStock}
+              {currentActions.map((action) => (
+                <TableRow key={action.id}>
+                  <TableCell className="font-mono text-sm">{action.sku}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`font-semibold ${
+                        action.quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                      }`}
+                    >
+                      {action.quantity > 0 ? '+' : ''}{action.quantity}
+                    </span>
                   </TableCell>
-                  <TableCell>{getStatusBadge(item.status)}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{action.date}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
+          
+          {/* Pagination Controls */}
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+            <div className="text-sm text-muted-foreground">
+              {language === 'en' ? 'Page' : 'Page'} {currentPage} {language === 'en' ? 'of' : 'sur'} {totalPages}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                {language === 'en' ? 'Previous' : 'Précédent'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+              >
+                {language === 'en' ? 'Next' : 'Suivant'}
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -34,6 +34,7 @@ public class ProductVariantMapper {
         return new ProductVariantDto(
                 variant.getId(),
                 variant.getProductId(),
+                variant.getShopId(),
                 variant.getSku(),
                 variant.getPrice(),
                 variant.getStock(),

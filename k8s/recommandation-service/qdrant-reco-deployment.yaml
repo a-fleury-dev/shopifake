@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qdrant-reco
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qdrant-reco
+  template:
+    metadata:
+      labels:
+        app: qdrant-reco
+    spec:
+      containers:
+      - name: qdrant-reco
+        image: qdrant/qdrant:latest
+        ports:
+        - containerPort: 6333
+        - containerPort: 6334
+        volumeMounts:
+        - name: qdrant-storage
+          mountPath: /qdrant/storage
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Gi"
+            cpu: "500m"
+      volumes:
+      - name: qdrant-storage
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant-reco
+spec:
+  selector:
+    app: qdrant-reco
+  ports:
+  - name: http
+    port: 6333
+    targetPort: 6333
+  - name: grpc
+    port: 6334
+    targetPort: 6334
+  type: ClusterIP

@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-config
+data:
+  KEYCLOAK_MODE: "dev"
+
+  # Admin username only (password moved to secret)
+  KEYCLOAK_ADMIN: "admin"
+
+  # Database config
+  KC_DB: "postgres"
+  KC_DB_URL: "jdbc:postgresql://postgres-keycloak.shopifake-prod.svc.cluster.local:5432/keycloak"
+  KC_DB_USERNAME: "keycloak_user"
+
+  # Hostname
+  KC_HOSTNAME: "keycloak.shopifake.duckdns.org"
+  KC_HOSTNAME_STRICT: "false"
+  KC_HOSTNAME_STRICT_BACKCHANNEL: "false"
+
+  # HTTP
+  KC_HTTP_ENABLED: "true"
+  KC_PROXY: "edge"
+  KC_PROXY_HEADERS: "xforwarded"
+
+  # Monitoring
+  KC_HEALTH_ENABLED: "true"
+  KC_METRICS_ENABLED: "true"
+
+  # Realm import
+  IMPORT_FILE_PATH: "/opt/keycloak/import/realm-export.json"
+  OVERWRITE_EXISTING_REALM: "false"
+
+  # Logging
+  KC_LOG_LEVEL: "info"

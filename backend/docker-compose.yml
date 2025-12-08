@@ -39,6 +39,25 @@ services:
       timeout: 5s
       retries: 5
 
+  postgres-keycloak:
+    image: postgres:16-alpine
+    container_name: postgres-keycloak
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pwd
+    volumes:
+      - postgres_keycloak_data:/var/lib/postgresql/data
+    networks:
+      - shopifake-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d keycloak" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # MinIO for image storage
   minio:
     image: minio/minio:latest
@@ -77,6 +96,14 @@ services:
     depends_on:
       postgres-main:
         condition: service_healthy
+      chatbot-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
     networks:
       - shopifake-network
     restart: unless-stopped
@@ -102,6 +129,119 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - shopifake-network
+    restart: unless-stopped
+
+  keycloak:
+    build:
+      context: ./keycloak
+      dockerfile: Dockerfile
+    container_name: keycloak
+    depends_on:
+      postgres-keycloak:
+        condition: service_healthy
+    environment:
+      KEYCLOAK_MODE: ${KEYCLOAK_MODE:-dev}
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: pwd
+      KEYCLOAK_USER_EMAIL: example@example.com
+      KEYCLOAK_USER_PASSWORD: examplepassword
+      #KC_HOSTNAME_STRICT: false
+      #KC_HOSTNAME_STRICT_BACKCHANNEL: false
+
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
+      KC_DB: postgres
+      KC_DB_USERNAME: user
+      KC_DB_PASSWORD: pwd
+
+      #Prod only
+      #KC_HOSTNAME: ${KC_HOSTNAME}
+      #KC_HTTPS_CERTIFICATE_FILE: /etc/x509/https/tls.crt
+      #KC_HTTPS_CERTIFICATE_KEY_FILE: /etc/x509/https/tls.key
+    ports:
+      - "8090:8080"
+    volumes:
+      - ./keycloak-data:/opt/keycloak/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    networks:
+      - shopifake-network
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "5003:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      KEYCLOAK_URL: http://keycloak:8080
+      ISSUER_URI: http://keycloak:8080/auth/realms/shopifake
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/shopifake/protocol/openid-connect/certs
+    depends_on:
+      keycloak:
+        condition: service_started
+    networks:
+      - shopifake-network
+    restart: unless-stopped
+
+
+  # Qdrant Vector Database for chatbot
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - shopifake-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:6333/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # Chatbot Service
+  chatbot-service:
+    build:
+      context: ./chatbot-service
+      dockerfile: Dockerfile
+    container_name: chatbot-service
+    ports:
+      - "5004:8080"
+    environment:
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: products
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_EMBED_MODEL: text-embedding-3-small
+      OPENAI_CHAT_MODEL: gpt-4o-mini
+    env_file:
+      - ./chatbot-service/.env
+    depends_on:
+      qdrant:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - shopifake-network
     restart: unless-stopped
@@ -110,8 +250,12 @@ volumes:
   postgres_main_data:
   postgres_image_data:
   minio_data:
+  postgres_keycloak_data:
+  keycloak-data:
+  qdrant_data:
 
 networks:
   shopifake-network:
+    name: shopifake-network
     driver: bridge
 

@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "shops")
@@ -21,7 +22,7 @@ public class Shop {
     private Long id;
 
     @Column(name = "admin_id", nullable = false)
-    private Long adminId;
+    private UUID adminId;
 
     @Column(name = "domain_name", unique = true, nullable = false, length = 255)
     private String domainName;

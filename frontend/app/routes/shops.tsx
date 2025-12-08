@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router';
-import { Plus, Store as StoreIcon, Shield, Eye, Settings as SettingsIcon } from 'lucide-react';
+import { Plus, Store as StoreIcon, Shield, Eye, Settings as SettingsIcon, AlertCircle } from 'lucide-react';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { getAllShops } from '../lib/shops/shopService';
-import type { Shop, ShopRole } from '../lib/shops/types';
+import { fetchShopsByAdminId } from '../clients/shopApiClient';
+import type { ShopDTO } from '../lib/shops/dto';
 import { translations } from '../lib/translations';
 import { ShopsHeader } from '../components/shops/ShopsHeader';
 import { useTheme } from '../contexts/ThemeContext';
+import {useAuth} from "../contexts/AuthContext";
 
 export function meta() {
   return [
@@ -17,74 +18,108 @@ export function meta() {
   ];
 }
 
-function getRoleIcon(role: ShopRole) {
-  switch (role) {
-    case 'admin':
-      return Shield;
-    case 'manager':
-      return SettingsIcon;
-    case 'reader':
-      return Eye;
-  }
-}
-
-function getRoleBadgeVariant(role: ShopRole): 'default' | 'secondary' | 'outline' {
-  switch (role) {
-    case 'admin':
-      return 'default';
-    case 'manager':
-      return 'secondary';
-    case 'reader':
-      return 'outline';
-  }
-}
-
 export default function ShopsRoute() {
   const navigate = useNavigate();
   const { theme, setTheme, language, setLanguage } = useTheme();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [shops, setShops] = useState<Shop[]>([]);
+  const { user, tokens, logout, isLoading: authLoading, getUserData } = useAuth();
+  const [shops, setShops] = useState<ShopDTO[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Check authentication on mount
+  // Check authentication and fetch shops on mount
   useEffect(() => {
-    const user = localStorage.getItem('shopifake_user');
-    const authTime = localStorage.getItem('shopifake_auth_time');
-
-    if (user && authTime) {
-      const authDate = parseInt(authTime);
-      const now = Date.now();
-
-      if (now - authDate < 600000) {
-        setIsAuthenticated(true);
-        setShops(getAllShops());
-      } else {
-        localStorage.removeItem('shopifake_user');
-        localStorage.removeItem('shopifake_auth_time');
-        setIsAuthenticated(false);
+    const loadShops = async () => {
+      // Wait for auth context to load from localStorage
+      if (authLoading) {
+        return;
       }
-    } else {
-      setIsAuthenticated(false);
-    }
-  }, []);
+
+      // If not authenticated, don't try to load shops
+      if (!tokens) {
+        setIsLoading(false);
+        return;
+      }
+
+      // If we have tokens but no user, fetch user data
+      if (!user) {
+        try {
+          await getUserData();
+        } catch (err) {
+          console.error('Failed to fetch user data:', err);
+          setError('Failed to load user data');
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Now we should have user data
+      if (user?.id) {
+        try {
+          setIsLoading(true);
+          const fetchedShops = await fetchShopsByAdminId(user.id);
+          setShops(fetchedShops);
+          setError(null);
+        } catch (err) {
+          console.error('Failed to fetch shops:', err);
+          setError(err instanceof Error ? err.message : 'Failed to load shops');
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setError('No admin ID found');
+        setIsLoading(false);
+      }
+    };
+
+    loadShops();
+  }, [tokens, user, authLoading, getUserData]);
 
   // Show loading state while checking auth
-  if (isAuthenticated === null) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">Loading shops...</p>
         </div>
       </div>
     );
   }
 
   // Redirect to auth if not authenticated
-  if (!isAuthenticated) {
+  if (!tokens) {
     return <Navigate to="/auth" replace />;
   }
 
   const t = translations[language].shops.myShops;
+
+  // Show error state if fetch failed
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background/95 backdrop-blur-xl relative">
+        <ShopsHeader 
+          theme={theme}
+          setTheme={setTheme}
+          language={language}
+          setLanguage={setLanguage}
+        />
+        
+        <div className="relative z-10 container mx-auto px-4 md:px-6 py-8 md:py-12">
+          <Card className="liquid-card p-12 text-center border-red-400/30">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h3 className="text-foreground mb-2">Failed to load shops</h3>
+            <p className="text-muted-foreground mb-6">{error}</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="liquid-button"
+            >
+              Try Again
+            </Button>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background/95 backdrop-blur-xl relative">
@@ -141,10 +176,6 @@ export default function ShopsRoute() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {shops.map((shop) => {
-              const RoleIcon = getRoleIcon(shop.userRole);
-              const roleKey = `role${shop.userRole.charAt(0).toUpperCase() + shop.userRole.slice(1)}` as keyof typeof t;
-              const roleText = t[roleKey];
-              
               return (
                 <Card
                   key={shop.id}
@@ -154,20 +185,20 @@ export default function ShopsRoute() {
                   {/* Banner Image */}
                   <div className="relative h-48 overflow-hidden">
                     <img
-                      src={shop.banner}
+                      src={shop.bannerUrl || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'}
                       alt={shop.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
                     
-                    {/* Role Badge */}
+                    {/* Admin Badge */}
                     <div className="absolute top-4 right-4">
                       <Badge
-                        variant={getRoleBadgeVariant(shop.userRole)}
+                        variant="default"
                         className="ios-surface flex items-center gap-1.5 px-3 py-1.5"
                       >
-                        <RoleIcon className="w-3.5 h-3.5" />
-                        {roleText}
+                        <Shield className="w-3.5 h-3.5" />
+                        {t.roleAdmin || 'Admin'}
                       </Badge>
                     </div>
                   </div>
@@ -179,7 +210,7 @@ export default function ShopsRoute() {
                     </h3>
                     
                     <p className="text-sm text-muted-foreground mb-3">
-                      {shop.domain}.shopifake.com
+                      {shop.domainName}.shopifake.com
                     </p>
 
                     {shop.description && (

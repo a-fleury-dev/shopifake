@@ -1,15 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { CMSModule } from './CMSModule';
 import { SettingsModule } from './SettingsModule';
-import { CategoriesView, ProductsView, StockView } from './dashboard/backoffice';
+import { CategoriesView, ProductsView, VariantsView, StockView } from './dashboard/backoffice';
+import AuditView from './dashboard/backoffice/AuditView';
 import { DashboardSidebar } from './dashboard/DashboardSidebar';
 import {
   DashboardHome,
   SalesView,
-  StockView as AuditStockView,
-  ChatbotView,
-  ABTestingView,
-  HistoryView,
 } from './dashboard/audit';
 import type { DashboardProps, CategoryType } from './dashboard/types';
 import { translations } from '../lib/translations';
@@ -101,16 +98,7 @@ export function Dashboard({
       return <SalesView language={language} translations={dt} />;
     }
     if (activeTab === 'audit-stock') {
-      return <AuditStockView language={language} translations={dt} />;
-    }
-    if (activeTab === 'audit-chatbot') {
-      return <ChatbotView language={language} translations={dt} />;
-    }
-    if (activeTab === 'audit-abtesting') {
-      return <ABTestingView language={language} translations={dt} />;
-    }
-    if (activeTab === 'audit-history') {
-      return <HistoryView language={language} translations={dt} />;
+      return <AuditView language={language} shopId={currentShop ? parseInt(currentShop.id) : 0} />;
     }
 
     // CMS category views
@@ -133,13 +121,16 @@ export function Dashboard({
       const sectionName = activeTab.replace('backoffice-', '');
 
       if (sectionName === 'categories') {
-        return <CategoriesView language={language} currentUser={currentUser} />;
+        return <CategoriesView language={language} currentUser={currentUser} shopId={currentShop ? parseInt(currentShop.id) : undefined} />;
       }
       if (sectionName === 'products') {
-        return <ProductsView language={language} currentUser={currentUser} />;
+        return <ProductsView language={language} currentUser={currentUser} shopId={currentShop ? parseInt(currentShop.id) : undefined} />;
+      }
+      if (sectionName === 'variants') {
+        return <VariantsView language={language} currentUser={currentUser} shopId={currentShop ? parseInt(currentShop.id) : undefined} />;
       }
       if (sectionName === 'stock') {
-        return <StockView language={language} currentUser={currentUser} />;
+        return <StockView language={language} currentUser={currentUser} shopId={currentShop ? parseInt(currentShop.id) : undefined} />;
       }
     }
 
@@ -147,10 +138,7 @@ export function Dashboard({
     if (activeTab.startsWith('settings-')) {
       const sectionName = activeTab.replace('settings-', '') as
         | 'store'
-        | 'domains'
-        | 'payment'
-        | 'shipping'
-        | 'notifications';
+        | 'domains';
       return <SettingsModule language={language} initialSection={sectionName} />;
     }
 

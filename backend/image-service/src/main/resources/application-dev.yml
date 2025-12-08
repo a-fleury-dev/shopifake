@@ -47,6 +47,3 @@ springdoc:
     path: /swagger-ui.html
     enabled: true
 
-server:
-  port: 5002
-

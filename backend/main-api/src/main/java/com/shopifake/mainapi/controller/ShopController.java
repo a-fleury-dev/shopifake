@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/shops")
@@ -57,6 +58,22 @@ public class ShopController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/domain/{domainName}")
+    @Operation(
+            summary = "Obtenir une boutique par son nom de domaine",
+            description = "Récupère les détails d'une boutique spécifique à partir de son nom de domaine"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Boutique trouvée"),
+            @ApiResponse(responseCode = "404", description = "Boutique non trouvée")
+    })
+    public ResponseEntity<ShopResponse> getShopByDomainName(
+            @Parameter(description = "Nom de domaine de la boutique", required = true, example = "sport-elite")
+            @PathVariable String domainName) {
+        ShopResponse response = shopService.getShopByDomainName(domainName);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
     @Operation(
             summary = "Obtenir toutes les boutiques",
@@ -76,7 +93,7 @@ public class ShopController {
     @ApiResponse(responseCode = "200", description = "Liste des boutiques de l'admin récupérée")
     public ResponseEntity<List<ShopResponse>> getShopsByAdminId(
             @Parameter(description = "ID de l'administrateur", required = true)
-            @PathVariable Long adminId) {
+            @PathVariable UUID adminId) {
         List<ShopResponse> shops = shopService.getShopsByAdminId(adminId);
         return ResponseEntity.ok(shops);
     }

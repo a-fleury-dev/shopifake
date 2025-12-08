@@ -6,6 +6,7 @@ on:
       - develop
       - staging
       - main
+      - feat/ci-cd
       - 'feature/**'
     paths:
       - 'backend/chatbot-service/**'
@@ -84,10 +85,8 @@ jobs:
     with:
       service-name: chatbot-service
       k8s-manifests-path: k8s/chatbot-service
-      namespace-staging: chatbot-staging
-      namespace-production: chatbot-prod
-      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || '' }}
-      deployments: chatbot-service,qdrant
+      namespace: shopifake-prod
+      deployments: qdrant-chat,chatbot-service
     secrets:
       KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

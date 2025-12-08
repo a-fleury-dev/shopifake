@@ -1,0 +1,47 @@
+name: Main API - CI Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+      - staging
+      - main
+      - 'feature/**'
+      - feat/ci-cd
+    paths:
+      - 'backend/main-api/**'
+      - '.github/workflows/main-api-ci.yml'
+      - '.github/workflows/lint.yml'
+      - '.github/workflows/test.yml'
+      - '.github/workflows/build.yml'
+  pull_request:
+    branches:
+      - develop
+      - staging
+      - main
+    paths:
+      - 'backend/main-api/**'
+
+# Permissions required by the reusable `build.yml` workflow
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+    with:
+      service-path: backend/main-api
+
+  tests:
+    uses: ./.github/workflows/test.yml
+    needs: lint
+    with:
+      service-path: backend/main-api
+
+  build:
+    uses: ./.github/workflows/build.yml
+    needs: tests
+    with:
+      service-path: backend/main-api
+      service-name: main-api

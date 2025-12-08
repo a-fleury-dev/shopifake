@@ -8,15 +8,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "DTO pour créer une nouvelle boutique")
 public class CreateShopRequest {
 
-    @NotNull(message = "L'ID de l'administrateur est obligatoire")
     @Schema(description = "ID de l'administrateur de la boutique", example = "1")
-    private Long adminId;
+    private @NotNull(message = "L'ID de l'administrateur est obligatoire") UUID adminId;
 
     @NotBlank(message = "Le nom de domaine est obligatoire")
     @Size(max = 255, message = "Le nom de domaine ne peut pas dépasser 255 caractères")

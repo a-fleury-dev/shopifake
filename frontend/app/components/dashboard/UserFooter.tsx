@@ -1,27 +1,28 @@
 import { Button } from '../ui/button';
 import { LogOut, Moon, Sun } from 'lucide-react';
+import type {User} from "../../lib/types/auth";
 
 interface UserFooterProps {
-  currentUser: {
-    name: string;
-    role: 'admin' | 'manager';
-  };
+  currentUser: User;
   theme: 'light' | 'dark';
   setTheme: (theme: 'light' | 'dark') => void;
   onLogout: () => void;
 }
 
 export function UserFooter({ currentUser, theme, setTheme, onLogout }: UserFooterProps) {
+  const userName = currentUser.firstName + " " + currentUser.lastName || 'User';
+  const userInitial = userName.charAt(0).toUpperCase();
+  
   return (
     <div className="mt-auto pt-6 border-t border-border/30 space-y-4">
       <div className="flex items-center gap-4 p-4 rounded-2xl ios-surface liquid-glow">
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-green-600 flex items-center justify-center">
-          <span className="text-white font-bold">{currentUser.name.charAt(0).toUpperCase()}</span>
+          <span className="text-white font-bold">{userInitial}</span>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-foreground font-semibold truncate">{currentUser.name}</p>
+          <p className="text-foreground font-semibold truncate">{userName}</p>
           <p className="text-muted-foreground-enhanced text-sm">
-            {currentUser.role === 'admin' ? 'Administrator' : 'Manager'}
+            {'Administrator'}
           </p>
         </div>
       </div>

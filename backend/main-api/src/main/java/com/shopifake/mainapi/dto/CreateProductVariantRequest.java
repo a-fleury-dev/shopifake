@@ -9,6 +9,9 @@ public record CreateProductVariantRequest(
         @NotNull(message = "L'ID du produit est obligatoire")
         Long productId,
 
+        @NotNull(message = "L'ID de boutique est obligatoire")
+        Long shopId,
+
         @NotBlank(message = "Le SKU est obligatoire")
         @Size(max = 100, message = "Le SKU ne peut pas dépasser 100 caractères")
         String sku,

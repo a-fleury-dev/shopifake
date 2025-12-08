@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import {use, useEffect, useState} from 'react';
 import { useNavigate } from 'react-router';
 import {
   ShoppingBag,
@@ -12,6 +12,7 @@ import {
   Moon,
   Sun,
   ArrowRight,
+  Hash,
 } from 'lucide-react';
 import type { Route } from './+types/auth';
 import { translations } from '../lib/translations';
@@ -26,6 +27,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
+import {useAuth} from "../contexts/AuthContext";
+import {register} from "../clients/authApiClient";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -34,22 +37,19 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-interface User {
-  email: string;
-  name: string;
-  role: 'admin' | 'manager';
-}
-
 export default function Auth() {
   const navigate = useNavigate();
   const { theme, setTheme, language } = useTheme();
+
+  const { login, tokens, getUserData } = useAuth();
+
   const [isLogin, setIsLogin] = useState(true);
 
   // Form states
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [role, setRole] = useState<'admin' | 'manager'>('manager');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
 
   // Error and success states
   const [error, setError] = useState('');
@@ -57,6 +57,12 @@ export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
 
   const t = translations[language];
+
+    useEffect(() => {
+        if (tokens) {
+            navigate('/shops');
+        }
+    }, [tokens, navigate]);
 
   // Validation functions
   const validateEmail = (email: string): boolean => {
@@ -85,27 +91,18 @@ export default function Auth() {
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      const mockUser: User = {
-        email: email,
-        name: email.split('@')[0],
-        role: 'admin',
-      };
-
-      setSuccess(t.auth.success.loginSuccess);
-      setIsLoading(false);
-
-      // Store user and auth time in localStorage
-      setTimeout(() => {
-        localStorage.setItem('shopifake_user', JSON.stringify(mockUser));
-        localStorage.setItem('shopifake_auth_time', Date.now().toString());
+    try {
+        await login({ username: email, password });
+        await getUserData();
+        // Navigate after successful login and user data fetch
         navigate('/shops');
-      }, 1000);
-
-      setEmail('');
-      setPassword('');
-    }, 1000);
+    }
+    catch (e) {
+        setError(t.auth.errors.loginError)
+        console.error(e);
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -113,10 +110,15 @@ export default function Auth() {
     setError('');
     setSuccess('');
 
-    if (!name.trim()) {
+    if (!firstName.trim()) {
       setError(t.auth.errors.nameRequired);
       return;
     }
+
+      if (!lastName.trim()) {
+          setError(t.auth.errors.nameRequired);
+          return;
+      }
 
     if (!validateEmail(email)) {
       setError(t.auth.errors.invalidEmail);
@@ -128,31 +130,22 @@ export default function Auth() {
       return;
     }
 
+    const username = `${firstName} ${lastName}`;
+
+
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      const mockUser: User = {
-        email: email,
-        name: name,
-        role: role,
-      };
-
-      setSuccess(t.auth.success.signupSuccess);
-      setIsLoading(false);
-
-      // Store user and auth time in localStorage
-      setTimeout(() => {
-        localStorage.setItem('shopifake_user', JSON.stringify(mockUser));
-        localStorage.setItem('shopifake_auth_time', Date.now().toString());
-        navigate('/shops');
-      }, 1000);
-
-      setEmail('');
-      setPassword('');
-      setName('');
-      setRole('manager');
-    }, 1000);
+    try {
+        await register({ username, email, password, firstName, lastName})
+        toggleAuthMode()
+    }
+    catch (e) {
+        setError(t.auth.errors.signupError)
+        console.error(e);
+    }
+    finally {
+        setIsLoading(false);
+    }
   };
 
   const toggleAuthMode = () => {
@@ -161,8 +154,8 @@ export default function Auth() {
     setSuccess('');
     setEmail('');
     setPassword('');
-    setName('');
-    setRole('manager');
+    setFirstName('');
+    setLastName('');
   };
 
   return (
@@ -241,14 +234,23 @@ export default function Auth() {
                 {t.auth.form.name}
               </Label>
               <Input
-                id="name"
+                id="firstName"
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={t.auth.form.namePlaceholder}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder={t.auth.form.firstNamePlaceholder}
                 className="ios-surface border-0 text-foreground h-14 text-base rounded-2xl px-5"
                 required={!isLogin}
               />
+                <Input
+                    id="lastName"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder={t.auth.form.lastNamePlaceholder}
+                    className="ios-surface border-0 text-foreground h-14 text-base rounded-2xl px-5"
+                    required={!isLogin}
+                />
             </div>
           )}
 
@@ -294,36 +296,6 @@ export default function Auth() {
             />
             <p className="text-xs text-muted-foreground">{t.auth.form.passwordHint}</p>
           </div>
-
-          {!isLogin && (
-            <div className="space-y-3">
-              <Label
-                htmlFor="role"
-                className="text-foreground flex items-center gap-3 font-semibold"
-              >
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Shield className="w-4 h-4 text-primary" />
-                </div>
-                {t.auth.form.role}
-              </Label>
-              <Select
-                value={role}
-                onValueChange={(value: string) => setRole(value as 'admin' | 'manager')}
-              >
-                <SelectTrigger className="ios-surface border-0 text-foreground h-14 text-base rounded-2xl px-5">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="liquid-card border-0">
-                  <SelectItem value="manager" className="rounded-xl">
-                    {t.auth.form.roleManager}
-                  </SelectItem>
-                  <SelectItem value="admin" className="rounded-xl">
-                    {t.auth.form.roleAdmin}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
 
           <Button
             type="submit"

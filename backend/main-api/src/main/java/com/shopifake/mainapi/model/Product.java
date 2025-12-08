@@ -25,6 +25,9 @@ public class Product {
     @Column(name = "category_id", nullable = false)
     private Long categoryId;
 
+    @Column(name = "shop_id", nullable = false)
+    private Long shopId;
+
     @Column(nullable = false, length = 255)
     private String name;
 

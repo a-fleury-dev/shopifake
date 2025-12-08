@@ -77,7 +77,9 @@ public class ImageSeeder implements CommandLineRunner {
     private void loadImagesFromFolder(String folderPath, Image.EntityType entityType) {
         try {
             var resource = getClass().getClassLoader().getResource(folderPath);
-            if (resource == null) return;
+            if (resource == null) {
+                return;
+            }
 
             var folder = new File(resource.toURI());
             var files = folder.listFiles((dir, name) ->
@@ -87,7 +89,9 @@ public class ImageSeeder implements CommandLineRunner {
                 name.toLowerCase().endsWith(".webp")
             );
 
-            if (files == null || files.length == 0) return;
+            if (files == null || files.length == 0) {
+                return;
+            }
 
             int index = 1;
             for (var file : files) {
@@ -95,7 +99,10 @@ public class ImageSeeder implements CommandLineRunner {
                     byte[] imageData = java.nio.file.Files.readAllBytes(file.toPath());
                     String contentType = determineContentType(file.getName());
                     String storeId = "store-" + String.format("%03d", index);
-                    uploadSeedImage(entityType, storeId, file.getName(), imageData, contentType, null, null, null);
+                    MultipartFile multipartFile = new SeedMultipartFile(
+                            "file", file.getName(), contentType, imageData
+                    );
+                    uploadSeedImage(entityType, storeId, multipartFile, null, null, null);
                     index++;
                 } catch (Exception e) {
                     log.error("❌ Failed to load {}: {}", file.getName(), e.getMessage());
@@ -109,11 +116,15 @@ public class ImageSeeder implements CommandLineRunner {
     private void loadBlogImagesFromFolder(String basePath) {
         try {
             var resource = getClass().getClassLoader().getResource(basePath);
-            if (resource == null) return;
+            if (resource == null) {
+                return;
+            }
 
             var baseFolder = new File(resource.toURI());
             var storeFolders = baseFolder.listFiles(File::isDirectory);
-            if (storeFolders == null || storeFolders.length == 0) return;
+            if (storeFolders == null || storeFolders.length == 0) {
+                return;
+            }
 
             for (var storeFolder : storeFolders) {
                 String storeId = storeFolder.getName();
@@ -124,15 +135,19 @@ public class ImageSeeder implements CommandLineRunner {
                     name.toLowerCase().endsWith(".webp")
                 );
 
-                if (files == null || files.length == 0) continue;
+                if (files == null || files.length == 0) {
+                    continue;
+                }
                 java.util.Arrays.sort(files);
 
                 for (var file : files) {
                     try {
                         byte[] imageData = java.nio.file.Files.readAllBytes(file.toPath());
                         String contentType = determineContentType(file.getName());
-                        uploadSeedImage(Image.EntityType.BLOG_IMAGE, storeId, file.getName(),
-                                       imageData, contentType, null, null, null);
+                        MultipartFile multipartFile = new SeedMultipartFile(
+                                "file", file.getName(), contentType, imageData
+                        );
+                        uploadSeedImage(Image.EntityType.BLOG_IMAGE, storeId, multipartFile, null, null, null);
                     } catch (Exception e) {
                         log.error("❌ Failed to load blog image {}: {}", file.getName(), e.getMessage());
                     }
@@ -146,21 +161,29 @@ public class ImageSeeder implements CommandLineRunner {
     private void loadVariantImagesFromFolder(String basePath) {
         try {
             var resource = getClass().getClassLoader().getResource(basePath);
-            if (resource == null) return;
+            if (resource == null) {
+                return;
+            }
 
             var baseFolder = new File(resource.toURI());
             var storeFolders = baseFolder.listFiles(File::isDirectory);
-            if (storeFolders == null || storeFolders.length == 0) return;
+            if (storeFolders == null || storeFolders.length == 0) {
+                return;
+            }
 
             for (var storeFolder : storeFolders) {
                 String storeId = storeFolder.getName();
                 var productFolders = storeFolder.listFiles(File::isDirectory);
-                if (productFolders == null) continue;
+                if (productFolders == null) {
+                    continue;
+                }
 
                 for (var productFolder : productFolders) {
                     String productId = productFolder.getName();
                     var variantFolders = productFolder.listFiles(File::isDirectory);
-                    if (variantFolders == null) continue;
+                    if (variantFolders == null) {
+                        continue;
+                    }
 
                     for (var variantFolder : variantFolders) {
                         String variantId = variantFolder.getName();
@@ -181,7 +204,9 @@ public class ImageSeeder implements CommandLineRunner {
             name.toLowerCase().endsWith(".webp")
         );
 
-        if (files == null || files.length == 0) return;
+        if (files == null || files.length == 0) {
+            return;
+        }
 
         java.util.Arrays.sort(files);
 
@@ -190,8 +215,11 @@ public class ImageSeeder implements CommandLineRunner {
             try {
                 byte[] imageData = java.nio.file.Files.readAllBytes(file.toPath());
                 String contentType = determineContentType(file.getName());
-                uploadSeedImage(Image.EntityType.VARIANT_IMAGE, storeId, file.getName(),
-                               imageData, contentType, productId, variantId, displayOrder);
+                MultipartFile multipartFile = new SeedMultipartFile(
+                        "file", file.getName(), contentType, imageData
+                );
+                uploadSeedImage(Image.EntityType.VARIANT_IMAGE, storeId, multipartFile,
+                        productId, variantId, displayOrder);
                 displayOrder++;
             } catch (Exception e) {
                 log.error("❌ Failed to load variant image {}: {}", file.getName(), e.getMessage());
@@ -211,20 +239,16 @@ public class ImageSeeder implements CommandLineRunner {
         return "image/jpeg";
     }
 
-    private void uploadSeedImage(Image.EntityType entityType, String storeId, String fileName,
-                                 byte[] imageData, String contentType, String productId,
+    private void uploadSeedImage(Image.EntityType entityType, String storeId,
+                                 MultipartFile multipartFile, String productId,
                                  String variantId, Integer displayOrder) {
         try {
-            MultipartFile multipartFile = new SeedMultipartFile(
-                    "file",
-                    fileName,
-                    contentType,
-                    imageData
+            imageService.uploadImage(
+                    multipartFile, entityType, storeId,
+                    productId, variantId, displayOrder
             );
-
-            imageService.uploadImage(multipartFile, entityType, storeId, productId, variantId, displayOrder);
         } catch (Exception e) {
-            log.error("❌ Failed to upload {}: {}", fileName, e.getMessage());
+            log.error("❌ Failed to upload {}: {}", multipartFile.getOriginalFilename(), e.getMessage());
         }
     }
 }

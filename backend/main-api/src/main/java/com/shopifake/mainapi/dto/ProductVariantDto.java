@@ -7,6 +7,7 @@ import java.util.Map;
 public record ProductVariantDto(
         Long id,
         Long productId,
+        Long shopId,
         String sku,
         BigDecimal price,
         Integer stock,

@@ -46,10 +46,15 @@ management:
     health:
       show-details: always
 
-server:
-  port: 5001
-
 # Image Service Configuration
 image-service:
-  url: http://localhost:5002
+  url: http://image-service:8080
+
+# Webhook Configuration
+webhook:
+  enabled: true
+  chatbot:
+    url: http://chatbot-service:8080
+    timeout: 5000
+    fail-silently: true
 

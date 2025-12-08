@@ -1,0 +1,67 @@
+spring:
+  application:
+    name: main-api
+
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/main_api}
+    username: ${DATABASE_USERNAME:user}
+    password: ${DATABASE_PASSWORD:pwd}
+    driver-class-name: org.postgresql.Driver
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    clean-disabled: false
+    locations: classpath:db/migration
+    default-schema: public
+    validate-on-migrate: true
+    out-of-order: false
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+
+  cloud:
+    config:
+      enabled: false
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true  # Active les endpoints /health/liveness et /health/readiness
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+
+# Image Service Configuration
+image-service:
+  url: ${IMAGE_SERVICE_URL:http://image-service:8080}
+
+# Webhook Configuration
+webhook:
+  enabled: ${WEBHOOK_ENABLED:true}
+  chatbot:
+    url: ${WEBHOOK_CHATBOT_URL:http://chatbot-service:8080}
+    timeout: ${WEBHOOK_CHATBOT_TIMEOUT:5000}
+    fail-silently: ${WEBHOOK_CHATBOT_FAIL_SILENTLY:true}
+

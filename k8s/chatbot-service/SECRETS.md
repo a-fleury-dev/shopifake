@@ -66,7 +66,7 @@ Pour mettre à jour un secret :
 2. Relancez le workflow manuellement ou faites un push
 3. Le secret sera automatiquement mis à jour dans Kubernetes
 
-Ou manuellement :
+Ou manuellement:
 
 ```bash
 kubectl create secret generic chatbot-secret \
