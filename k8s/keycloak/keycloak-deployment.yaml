@@ -16,7 +16,7 @@ metadata:
   labels:
     app: keycloak
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -55,34 +55,11 @@ spec:
         resources:
           requests:
             memory: "768Mi"
-            cpu: "300m"  # Augmenté pour un démarrage plus rapide
+            cpu: "300m"
           limits:
             memory: "1.5Gi"
-            cpu: "1000m"  # Augmenté pour permettre un démarrage rapide
-        livenessProbe:
-          httpGet:
-            path: /health/live
-            port: 8080
-          initialDelaySeconds: 180
-          periodSeconds: 15
-          timeoutSeconds: 10
-          failureThreshold: 5
-        readinessProbe:
-          httpGet:
-            path: /health/ready
-            port: 8080
-          initialDelaySeconds: 90
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 5
-        startupProbe:
-          httpGet:
-            path: /health/live
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 10
-          failureThreshold: 40  # 40 * 10s = ~7 minutes max pour démarrer
+            cpu: "1000m"
+        # Health checks désactivés pour le mode dev
 ---
 apiVersion: v1
 kind: Service

@@ -4,28 +4,27 @@ metadata:
   name: keycloak-config
   namespace: shopifake-prod
 data:
-  # Keycloak Mode
-  KEYCLOAK_MODE: "prod"
+  KEYCLOAK_MODE: "dev"
 
-  # Admin credentials (à changer en production!)
+  # Admin username only (password moved to secret)
   KEYCLOAK_ADMIN: "admin"
 
-  # Database configuration
+  # Database config
   KC_DB: "postgres"
-  KC_DB_URL: "jdbc:postgresql://postgres-keycloak:5432/keycloak"
+  KC_DB_URL: "jdbc:postgresql://postgres-keycloak.shopifake-prod.svc.cluster.local:5432/keycloak"
   KC_DB_USERNAME: "keycloak_user"
 
-  # Hostname configuration
+  # Hostname
   KC_HOSTNAME: "keycloak.shopifake.duckdns.org"
   KC_HOSTNAME_STRICT: "false"
   KC_HOSTNAME_STRICT_BACKCHANNEL: "false"
 
-  # HTTP configuration
+  # HTTP
   KC_HTTP_ENABLED: "true"
   KC_PROXY: "edge"
   KC_PROXY_HEADERS: "xforwarded"
 
-  # Health checks
+  # Monitoring
   KC_HEALTH_ENABLED: "true"
   KC_METRICS_ENABLED: "true"
 
@@ -35,4 +34,3 @@ data:
 
   # Logging
   KC_LOG_LEVEL: "info"
-

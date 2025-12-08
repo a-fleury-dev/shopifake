@@ -6,13 +6,15 @@ metadata:
 data:
 
   # Keycloak Configuration
-  KEYCLOAK_URL: "http://keycloak.shopifake-prod.svc.cluster.local:8080"
+  KEYCLOAK_URL: "http://keycloak.shopifake-prod.svc.cluster.local:80"
   KEYCLOAK_REALM: "shopifake"
   KEYCLOAK_CLIENT_ID: "shopifake"
 
+  FRONTEND_URL: "http://51.195.116.29"
+
   # OAuth2 Resource Server
-  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: "https://keycloak.shopifake.duckdns.org/realms/shopifake"
-  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "https://keycloak.shopifake.duckdns.org/realms/shopifake/protocol/openid-connect/certs"
+  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: "http://keycloak.shopifake-prod.svc.cluster.local:80/realms/shopifake"
+  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "http://keycloak.shopifake-prod.svc.cluster.local:80/protocol/openid-connect/certs"
 
   # Actuator
   MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,metrics"

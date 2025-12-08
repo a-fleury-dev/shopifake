@@ -1,5 +1,6 @@
 package com.shopifake.auth.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
@@ -14,13 +15,13 @@ public class WebConfig implements WebMvcConfigurer {
         return new RestTemplate();
     }
 
+    @Value("${frontend.url}")
+        private String frontendUrl;
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns(
-                        "http://localhost:*",
-                        "http://127.0.0.1:*"
-                )
+                .allowedOriginPatterns(frontendUrl)
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)

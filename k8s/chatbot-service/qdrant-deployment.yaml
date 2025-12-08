@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: qdrant
+  name: qdrant-chat
   namespace: shopifake-prod
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: qdrant
+      app: qdrant-chat
   template:
     metadata:
       labels:
-        app: qdrant
+        app: qdrant-chat
     spec:
       containers:
-      - name: qdrant
+      - name: qdrant-chat
         image: qdrant/qdrant:latest
         ports:
         - containerPort: 6333
@@ -36,11 +36,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: qdrant-service
+  name: qdrant-chat
   namespace: shopifake-prod
 spec:
   selector:
-    app: qdrant
+    app: qdrant-chat
   ports:
   - port: 6333
     targetPort: 6333
@@ -49,7 +49,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: qdrant-pvc
+  name: qdrant-chat-pvc
   namespace: shopifake-prod
 spec:
   accessModes:

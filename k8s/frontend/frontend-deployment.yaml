@@ -4,7 +4,7 @@ metadata:
   name: frontend
   namespace: shopifake-prod
 spec:
-  replicas: 2  # On lance 2 instances de l'application pour la haute disponibilité
+  replicas: 1  # On lance 2 instances de l'application pour la haute disponibilité
   selector:
     matchLabels:
       app: frontend

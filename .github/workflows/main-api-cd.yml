@@ -1,0 +1,90 @@
+name: Build & Deploy Main API
+
+on:
+  push:
+    branches: [ develop, main, feat/ci-cd ]
+  pull_request:
+    branches: [ develop, main ]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository }}/main-api
+
+jobs:
+  build:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./main-api
+          file: ./main-api/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:latest
+
+  deploy:
+    name: Deploy Main API + DB
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 --decode > ~/.kube/config
+
+      # ==================================================
+      # CREATE MAIN API SECRET
+      # ==================================================
+      - name: Create main-api secret
+        run: |
+          kubectl create secret generic main-api-secrets \
+            --namespace=shopifake-prod \
+            --from-literal=db-password="${{ secrets.MAIN_API_DB_PASSWORD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      # ==================================================
+      # CREATE POSTGRES SECRET
+      # ==================================================
+      - name: Create postgres-main secret
+        run: |
+          kubectl create secret generic postgres-main-secret \
+            --namespace=shopifake-prod \
+            --from-literal=POSTGRES_DB="${{ secrets.MAIN_API_PG_DB }}" \
+            --from-literal=POSTGRES_USER="${{ secrets.MAIN_API_PG_USER }}" \
+            --from-literal=POSTGRES_PASSWORD="${{ secrets.MAIN_API_PG_PASSWORD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      # ==================================================
+      # APPLY MANIFESTS: DB + API
+      # ==================================================
+      - name: Deploy to Kubernetes
+        uses: ./.github/workflows/deploy-to-k8s.yml
+        with:
+          service-name: 'main-api'
+          k8s-manifests-path: 'k8s/main-api'
+          namespace-staging: 'shopifake-staging'
+          namespace-production: 'shopifake-prod'
+          deployments: 'main-api,postgres-main'
+        secrets:
+          KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}

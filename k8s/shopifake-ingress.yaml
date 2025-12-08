@@ -1,0 +1,46 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: shopifake-route
+  namespace: shopifake-prod
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: PathPrefix(`/`)
+      kind: Rule
+      services:
+        - name: frontend
+          port: 80
+
+    - match: PathPrefix(`/api/main`)
+      kind: Rule
+      services:
+        - name: main-api
+          port: 80
+      middlewares:
+        - name: main-strip-prefix
+
+    - match: PathPrefix(`/api/auth`)
+      kind: Rule
+      services:
+        - name: auth-service
+          port: 80
+      middlewares:
+        - name: auth-strip-prefix
+
+    - match: PathPrefix(`/api/image`)
+      kind: Rule
+      services:
+        - name: image-service
+          port: 80
+      middlewares:
+        - name: image-strip-prefix
+
+    - match: PathPrefix(`/api/chatbot`)
+      kind: Rule
+      services:
+        - name: chatbot-service
+          port: 80
+      middlewares:
+        - name: chatbot-strip-prefix

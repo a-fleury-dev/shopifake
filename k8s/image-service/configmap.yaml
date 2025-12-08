@@ -8,11 +8,6 @@ data:
   SPRING_APPLICATION_NAME: "image-service"
   SERVER_PORT: "8080"
 
-  # Database
-  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/image_service"
-  SPRING_DATASOURCE_USERNAME: "user"
-  SPRING_DATASOURCE_PASSWORD: "pwd"
-
   # JPA/Hibernate
   SPRING_JPA_HIBERNATE_DDL_AUTO: "validate"
   SPRING_JPA_SHOW_SQL: "false"
@@ -22,10 +17,6 @@ data:
   SPRING_FLYWAY_ENABLED: "true"
   SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
 
-  # MinIO Configuration
-  MINIO_ENDPOINT: "http://minio:9000"
-  MINIO_ACCESS_KEY: "minioadmin"
-  MINIO_SECRET_KEY: "minioadmin"
   MINIO_BUCKET_NAME: "shopifake-images-prod"
   MINIO_REGION: "us-east-1"
 

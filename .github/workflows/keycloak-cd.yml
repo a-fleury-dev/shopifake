@@ -1,0 +1,96 @@
+name: Build & Deploy Keycloak
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+      - feat/ci-cd
+  pull_request:
+    branches:
+      - develop
+      - main
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository }}/keycloak
+
+jobs:
+  build:
+    name: Build & Push Keycloak Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./keycloak
+          file: ./keycloak/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:latest
+
+  deploy:
+    name: Deploy Keycloak + Postgres
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 --decode > ~/.kube/config
+
+      # =====================================================
+      #  CREATE POSTGRES-KEYCLOAK SECRET
+      # =====================================================
+      - name: Create postgres-keycloak secret
+        run: |
+          kubectl create secret generic postgres-keycloak-secret \
+            --namespace=shopifake-prod \
+            --from-literal=POSTGRES_DB="${{ secrets.KEYCLOAK_PG_DB }}" \
+            --from-literal=POSTGRES_USER="${{ secrets.KEYCLOAK_PG_USER }}" \
+            --from-literal=POSTGRES_PASSWORD="${{ secrets.KEYCLOAK_PG_PASSWORD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      # =====================================================
+      #  CREATE KEYCLOAK SECRET
+      # =====================================================
+      - name: Create keycloak secret
+        run: |
+          kubectl create secret generic keycloak-secret \
+            --namespace=shopifake-prod \
+            --from-literal=KEYCLOAK_ADMIN_PASSWORD="${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
+            --from-literal=KC_DB_PASSWORD="${{ secrets.KEYCLOAK_DB_PASSWORD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      # =====================================================
+      # APPLY MANIFESTS (Postgres + Keycloak)
+      # =====================================================
+      - name: Deploy to Kubernetes
+        uses: ./.github/workflows/deploy-to-k8s.yml
+        with:
+          service-name: 'keycloak'
+          k8s-manifests-path: 'k8s/keycloak'
+          namespace-staging: 'shopifake-staging'
+          namespace-production: 'shopifake-prod'
+          deployments: 'keycloak,postgres-keycloak'
+        secrets:
+          KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}

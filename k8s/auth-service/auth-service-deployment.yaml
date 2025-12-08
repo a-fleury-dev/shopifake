@@ -4,7 +4,7 @@ metadata:
   name: auth-service
   namespace: shopifake-prod
 spec:
-  replicas: 2  # Haute disponibilité avec 2 instances
+  replicas: 1  # Haute disponibilité avec 2 instances
   selector:
     matchLabels:
       app: auth-service

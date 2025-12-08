@@ -4,7 +4,7 @@ metadata:
   name: image-service
   namespace: shopifake-prod
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: image-service
@@ -21,8 +21,10 @@ spec:
         ports:
         - containerPort: 8080
         envFrom:
-        - configMapRef:
-            name: image-service-config
+          - configMapRef:
+              name: image-service-config
+          - secretRef:
+              name: image-service-secrets
         resources:
           requests:
             memory: "256Mi"

@@ -1,0 +1,63 @@
+name: Build & Deploy Frontend
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+      - feat/ci-cd
+  pull_request:
+    branches:
+      - develop
+      - main
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository }}/frontend
+
+jobs:
+  build:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push Docker Image (VITE variables)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          platforms: linux/amd64
+          push: true
+          build-args: |
+            VITE_API_BASE_URL=${{ secrets.FRONTEND_API_URL }}
+            VITE_IMAGE_SERVICE_URL=${{ secrets.FRONTEND_IMAGE_URL }}
+            VITE_AUTH_SERVICE_URL=${{ secrets.FRONTEND_AUTH_URL }}
+            VITE_CHATBOT_SERVICE_URL=${{ secrets.FRONTEND_CHATBOT_URL }}
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:latest
+
+  deploy:
+    name: Deploy to Kubernetes
+    needs: build
+    if: github.event_name != 'pull_request'
+
+    uses: ./.github/workflows/deploy-to-k8s.yml
+    with:
+      service-name: 'frontend'
+      k8s-manifests-path: 'k8s/frontend'
+      namespace-staging: 'shopifake-staging'
+      namespace-production: 'shopifake-prod'
+      deployments: 'frontend'
+    secrets:
+      KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}

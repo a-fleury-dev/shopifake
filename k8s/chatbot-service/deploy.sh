@@ -64,7 +64,7 @@ kubectl apply -f qdrant-deployment.yaml
 
 # Attendre que Qdrant soit prêt
 echo -e "${YELLOW}⏳ Attente que Qdrant soit prêt...${NC}"
-kubectl wait --for=condition=ready pod -l app=qdrant -n shopifake-prod --timeout=300s
+kubectl wait --for=condition=ready pod -l app=qdrant-chat -n shopifake-prod --timeout=300s
 
 # Appliquer le Deployment
 echo -e "${YELLOW}🤖 Déploiement du chatbot-service...${NC}"

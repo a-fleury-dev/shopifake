@@ -4,7 +4,7 @@ metadata:
   name: main-api
   namespace: shopifake-prod
 spec:
-  replicas: 2  # Haute disponibilité avec 2 instances
+  replicas: 1  # Haute disponibilité avec 2 instances
   selector:
     matchLabels:
       app: main-api
@@ -29,13 +29,12 @@ spec:
             secretKeyRef:
               name: main-api-secrets
               key: db-password
-              optional: true  # Ne pas échouer si le secret n'existe pas encore
         resources:
           requests:  # Ressources minimales garanties
-            memory: "256Mi"
-            cpu: "100m"
-          limits:  # Ressources maximales autorisées
             memory: "512Mi"
+            cpu: "200m"
+          limits:  # Ressources maximales autorisées
+            memory: "1Gi"
             cpu: "500m"
         livenessProbe:  # Vérifie si l'application est en vie
           httpGet:
