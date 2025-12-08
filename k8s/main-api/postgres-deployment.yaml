@@ -2,7 +2,6 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: postgres-main-secret
-  namespace: shopifake-prod
 type: Opaque
 stringData:
   POSTGRES_DB: main_api
@@ -13,7 +12,6 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-main-pvc
-  namespace: shopifake-prod
 spec:
   accessModes:
     - ReadWriteOnce
@@ -26,7 +24,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres-main
-  namespace: shopifake-prod
 spec:
   replicas: 1
   selector:
@@ -85,7 +82,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres-main
-  namespace: shopifake-prod
 spec:
   selector:
     app: postgres-main

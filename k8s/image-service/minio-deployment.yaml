@@ -2,7 +2,6 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: minio-secret
-  namespace: shopifake-prod
 type: Opaque
 stringData:
   MINIO_ROOT_USER: minioadmin
@@ -12,7 +11,6 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: minio-pvc
-  namespace: shopifake-prod
 spec:
   accessModes:
     - ReadWriteOnce
@@ -25,7 +23,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: minio
-  namespace: shopifake-prod
 spec:
   replicas: 1
   selector:
@@ -87,7 +84,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: minio
-  namespace: shopifake-prod
 spec:
   selector:
     app: minio

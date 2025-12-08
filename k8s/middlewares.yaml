@@ -2,7 +2,6 @@ apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: main-strip-prefix
-  namespace: shopifake-prod
 spec:
   stripPrefix:
     prefixes:
@@ -12,7 +11,6 @@ apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: auth-strip-prefix
-  namespace: shopifake-prod
 spec:
   stripPrefix:
     prefixes:
@@ -22,7 +20,6 @@ apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: image-strip-prefix
-  namespace: shopifake-prod
 spec:
   stripPrefix:
     prefixes:
@@ -32,7 +29,6 @@ apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: chatbot-strip-prefix
-  namespace: shopifake-prod
 spec:
   stripPrefix:
     prefixes:

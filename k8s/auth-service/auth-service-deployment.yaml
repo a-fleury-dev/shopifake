@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: auth-service
-  namespace: shopifake-prod
 spec:
   replicas: 1  # Haute disponibilité avec 2 instances
   selector:
@@ -66,7 +65,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: auth-service
-  namespace: shopifake-prod
 spec:
   selector:
     app: auth-service  # Connecte ce service aux pods avec le label "app: auth-service"
