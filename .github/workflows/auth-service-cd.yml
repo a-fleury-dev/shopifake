@@ -12,6 +12,10 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build:
     name: Build & Push Docker Image

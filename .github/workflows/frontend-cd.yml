@@ -12,6 +12,10 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository }}/frontend
 
