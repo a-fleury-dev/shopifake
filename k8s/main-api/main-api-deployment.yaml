@@ -16,7 +16,7 @@ spec:
       - name: ghcr-secret  # Secret pour GitHub Container Registry
       containers:
       - name: main-api
-        image: ghcr.io/a-fleury-dev/shopifake/main-api:latest
+        image: ghcr.io/a-fleury-dev/main-api:latest
         ports:
         - containerPort: 8080  # Port Spring Boot par défaut
         envFrom:

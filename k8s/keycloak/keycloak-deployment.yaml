@@ -32,7 +32,7 @@ spec:
       - name: ghcr-secret
       containers:
       - name: keycloak
-        image: ghcr.io/a-fleury-dev/shopifake/keycloak:latest
+        image: ghcr.io/a-fleury-dev/keycloak:latest
         ports:
         - containerPort: 8080
           name: http

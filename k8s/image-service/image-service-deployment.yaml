@@ -16,7 +16,7 @@ spec:
       - name: ghcr-secret
       containers:
       - name: image-service
-        image: ghcr.io/a-fleury-dev/shopifake/image-service:latest
+        image: ghcr.io/a-fleury-dev/image-service:latest
         ports:
         - containerPort: 8080
         envFrom:

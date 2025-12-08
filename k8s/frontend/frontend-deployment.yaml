@@ -16,7 +16,7 @@ spec:
       - name: ghcr-secret  # Secret pour télécharger l'image depuis GitHub Container Registry
       containers:
       - name: frontend
-        image: ghcr.io/a-fleury-dev/shopifake/frontend:latest  # À ADAPTER avec votre registry
+        image: ghcr.io/a-fleury-dev/frontend:latest  # À ADAPTER avec votre registry
         ports:
         - containerPort: 5173  # Port sur lequel l'application écoute dans le conteneur
         envFrom:
