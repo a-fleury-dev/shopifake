@@ -65,8 +65,8 @@ jobs:
           kubectl delete secret main-api-secrets -n shopifake-prod
           kubectl create secret generic main-api-secrets \
             --namespace=shopifake-prod \
-            --from-literal=db-username="${{ secrets.MAIN_API_PG_USER }}" \
-            --from-literal=db-password="${{ secrets.MAIN_API_PG_PASSWORD }}" \
+            --from-literal=SPRING_DATASOURCE_USERNAME="${{ secrets.MAIN_API_PG_USER }}" \
+            --from-literal=SPRING_DATASOURCE_PASSWORD="${{ secrets.MAIN_API_PG_PASSWORD }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       # ==================================================

@@ -7,7 +7,6 @@ data:
   SPRING_PROFILES_ACTIVE: "prod"
 
   SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres-main.shopifake-prod.svc.cluster.local:5432/main_api"
-  SPRING_DATASOURCE_USERNAME: "user"
 
   WEBHOOK_CHATBOT_URL: "http://chatbot-service.shopifake-prod.svc.cluster.local:80"
   IMAGE_SERVICE_URL: "http://image-service.shopifake-prod.svc.cluster.local:80"

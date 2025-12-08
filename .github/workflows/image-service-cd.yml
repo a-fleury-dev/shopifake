@@ -95,7 +95,7 @@ jobs:
           kubectl delete secret minio-secret -n shopifake-prod
           kubectl create secret generic minio-secret \
             --namespace=shopifake-prod \
-            --from-literal=MINIO_ENDPOINT="${{ secrets.IMAGE_MINIO_ENDPOINT }}"
+            --from-literal=MINIO_ENDPOINT="${{ secrets.IMAGE_MINIO_ENDPOINT }}" \
             --from-literal=MINIO_ROOT_USER="${{ secrets.IMAGE_MINIO_ROOT_USER }}" \
             --from-literal=MINIO_ROOT_PASSWORD="${{ secrets.IMAGE_MINIO_ROOT_PASSWORD }}" \
             --dry-run=client -o yaml | kubectl apply -f -

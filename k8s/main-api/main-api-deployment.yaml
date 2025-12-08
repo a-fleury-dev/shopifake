@@ -22,17 +22,8 @@ spec:
         envFrom:
         - configMapRef:
             name: main-api-config  # Variables d'environnement du ConfigMap
-        env:
-        - name: SPRING_DATASOURCE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: main-api-secrets
-              key: db-password
-        - name: SPRING_DATASOURCE_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: main-api-secrets
-              key: db-username
+        - secretRef:
+            - name: main-api-secrets
         resources:
           requests:  # Ressources minimales garanties
             memory: "512Mi"
