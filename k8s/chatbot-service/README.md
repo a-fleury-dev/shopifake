@@ -79,7 +79,7 @@ kubectl apply -f k8s/chatbot-service/configmap.yaml
 
 # 4. Déployer les services
 kubectl apply -f k8s/chatbot-service/ollama-deployment.yaml
-kubectl apply -f k8s/chatbot-service/qdrant-deployment.yaml
+kubectl apply -f k8s/chatbot-service/qdrant-chat-deployment.yaml
 kubectl apply -f k8s/chatbot-service/chatbot-api-deployment.yaml
 
 # 5. Vérifier le déploiement

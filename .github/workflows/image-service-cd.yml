@@ -1,0 +1,118 @@
+name: Build & Deploy Image Service
+
+on:
+  push:
+    branches: [ develop, main, feat/ci-cd ]
+  pull_request:
+    branches: [ develop, main ]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/image-service
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Can GHCR login?
+        run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+
+      - uses: docker/build-push-action@v6
+
+        with:
+          context: ./backend/image-service
+          file: ./backend/image-service/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:latest
+
+  set-secrets:
+    name: Set secrets
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 --decode > ~/.kube/config
+      # ==================================================
+      # CREATE IMAGE SERVICE SECRET
+      # ==================================================
+      - name: Create image-service secret
+        run: |
+          kubectl delete secret image-service-secrets -n shopifake-prod
+          kubectl create secret generic image-service-secrets \
+            --namespace=shopifake-prod \
+            --from-literal=SPRING_DATASOURCE_URL="${{ secrets.IMAGE_DS_URL }}" \
+            --from-literal=SPRING_DATASOURCE_USERNAME="${{ secrets.IMAGE_DS_USER }}" \
+            --from-literal=SPRING_DATASOURCE_PASSWORD="${{ secrets.IMAGE_DS_PASSWORD }}" \
+            --from-literal=MINIO_ACCESS_KEY="${{ secrets.IMAGE_MINIO_ACCESS }}" \
+            --from-literal=MINIO_SECRET_KEY="${{ secrets.IMAGE_MINIO_SECRET }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      # ==================================================
+      # CREATE POSTGRES-IMAGE SECRET
+      # ==================================================
+      - name: Create postgres-image secret
+        run: |
+          kubectl delete secret postgres-image-secret -n shopifake-prod
+          kubectl create secret generic postgres-image-secret \
+            --namespace=shopifake-prod \
+            --from-literal=POSTGRES_DB="${{ secrets.IMAGE_PG_DB }}" \
+            --from-literal=POSTGRES_USER="${{ secrets.IMAGE_DS_USER }}" \
+            --from-literal=POSTGRES_PASSWORD="${{ secrets.IMAGE_DS_PASSWORD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      # ==================================================
+      # CREATE MINIO SECRET
+      # ==================================================
+      - name: Create minio secret
+        run: |
+          kubectl delete secret minio-secret -n shopifake-prod
+          kubectl create secret generic minio-secret \
+            --namespace=shopifake-prod \
+            --from-literal=MINIO_ENDPOINT="${{ secrets.IMAGE_MINIO_ENDPOINT }}" \
+            --from-literal=MINIO_ROOT_USER="${{ secrets.IMAGE_MINIO_ROOT_USER }}" \
+            --from-literal=MINIO_ROOT_PASSWORD="${{ secrets.IMAGE_MINIO_ROOT_PASSWORD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+      
+      
+      
+
+  deploy:
+    needs: set-secrets
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/deploy-k8s.yml
+    with:
+      service-name: 'image-service'
+      k8s-manifests-path: 'k8s/image-service'
+      namespace: 'shopifake-prod'
+      deployments: 'minio,postgres-image,image-service'
+    secrets:
+      KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
+
+  

@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-service-config
+data:
+
+  # Keycloak Configuration
+  KEYCLOAK_REALM: "shopifake"
+  KEYCLOAK_CLIENT_ID: "shopifake"
+
+  FRONTEND_URL: "http://51.195.116.29"
+
+  KEYCLOAK_URL: "http://keycloak.shopifake-prod.svc.cluster.local:80"
+
+  KEYCLOAK_ISSUER_URI: "http://keycloak.shopifake-prod.svc.cluster.local:80/realms/shopifake"
+  KEYCLOAK_JWK_SET_URI: "http://keycloak.shopifake-prod.svc.cluster.local:80/realms/shopifake/protocol/openid-connect/certs"
+
+
+  # Actuator
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,metrics"
+  MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: "when-authorized"
+  MANAGEMENT_HEALTH_LIVENESSSTATE_ENABLED: "true"
+  MANAGEMENT_HEALTH_READINESSSTATE_ENABLED: "true"
+

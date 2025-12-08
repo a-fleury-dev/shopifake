@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: image-service-config
+data:
+  # Application
+  SPRING_APPLICATION_NAME: "image-service"
+  SERVER_PORT: "8080"
+
+  # JPA/Hibernate
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "validate"
+  SPRING_JPA_SHOW_SQL: "false"
+  SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: "org.hibernate.dialect.PostgreSQLDialect"
+
+  # Flyway
+  SPRING_FLYWAY_ENABLED: "true"
+  SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
+
+  MINIO_BUCKET_NAME: "shopifake-images-prod"
+  MINIO_REGION: "us-east-1"
+
+  # Actuator
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,metrics"
+  MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: "when-authorized"
+  MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
+  MANAGEMENT_HEALTH_LIVENESSSTATE_ENABLED: "true"
+  MANAGEMENT_HEALTH_READINESSSTATE_ENABLED: "true"
+

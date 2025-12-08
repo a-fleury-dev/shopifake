@@ -11,19 +11,10 @@ on:
         description: 'Path to Kubernetes manifests directory (e.g., k8s/chatbot-service)'
         required: true
         type: string
-      namespace-staging:
-        description: 'Kubernetes namespace for staging environment'
+      namespace:
+        description: 'Kubernetes namespace to deploy into'
         required: true
         type: string
-      namespace-production:
-        description: 'Kubernetes namespace for production environment'
-        required: true
-        type: string
-      environment:
-        description: 'Target environment (staging|production) - only for workflow_dispatch'
-        required: false
-        type: string
-        default: 'staging'
       deployments:
         description: 'Comma-separated list of deployment names to wait for rollout (e.g., chatbot-service,qdrant)'
         required: true
@@ -62,36 +53,13 @@ jobs:
         id: ns
         shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            env_input="${{ inputs.environment }}"
-            if [ "$env_input" = "production" ] || [ "$env_input" = "prod" ]; then
-              echo "NAMESPACE=${{ inputs.namespace-production }}" >> $GITHUB_ENV
-            else
-              echo "NAMESPACE=${{ inputs.namespace-staging }}" >> $GITHUB_ENV
-            fi
-          else
-            branch="${{ github.ref_name }}"
-            if [ "$branch" = "main" ]; then
-              echo "NAMESPACE=${{ inputs.namespace-production }}" >> $GITHUB_ENV
-            else
-              echo "NAMESPACE=${{ inputs.namespace-staging }}" >> $GITHUB_ENV
-            fi
-          fi
+          echo "NAMESPACE=${{ inputs.namespace }}" >> $GITHUB_ENV
           echo "Namespace: $NAMESPACE"
 
       - name: Verify cluster connection
         run: |
           kubectl cluster-info
           kubectl get nodes
-
-      - name: Create image pull secret
-        run: |
-          kubectl create secret docker-registry ghcr-secret \
-            --docker-server=ghcr.io \
-            --docker-username=${{ github.actor }} \
-            --docker-password=${{ secrets.GITHUB_TOKEN }} \
-            --namespace=$NAMESPACE \
-            --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Create application secrets
         if: inputs.service-name == 'chatbot-service' || inputs.service-name == 'recommandation-service'
@@ -112,19 +80,14 @@ jobs:
           # Find all deployment files and update image tags to use commit SHA
           find ${{ inputs.k8s-manifests-path }} -name '*-deployment.yaml' -o -name 'deployment.yaml' | while read -r file; do
             # Update image tag from :latest to :${{ github.sha }}
-            sed -i "s|image: ghcr.io/${{ github.repository }}/${{ inputs.service-name }}:latest|image: ghcr.io/${{ github.repository }}/${{ inputs.service-name }}:${{ github.sha }}|g" "$file"
-            
+            sed -i "s|image: ghcr.io/.*/${{ inputs.service-name }}:latest|image: ghcr.io/${{ github.repository_owner }}/${{ inputs.service-name }}:${{ github.sha }}|g" "$file"          
+          
             echo "Updated deployment in $file:"
             grep "image:" "$file" || true
           done
 
       - name: Apply Kubernetes manifests
         run: |
-          # Apply namespace (cluster-scoped)
-          if [ -f "${{ inputs.k8s-manifests-path }}/namespace.yaml" ]; then
-            kubectl apply -f ${{ inputs.k8s-manifests-path }}/namespace.yaml
-          fi
-
           # Apply configmaps
           if [ -f "${{ inputs.k8s-manifests-path }}/configmap.yaml" ]; then
             kubectl -n $NAMESPACE apply -f ${{ inputs.k8s-manifests-path }}/configmap.yaml

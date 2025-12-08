@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: main-api-config
+data:
+  SERVER_PORT: "8080"
+  SPRING_PROFILES_ACTIVE: "prod"
+
+  DATABASE_URL: "jdbc:postgresql://postgres-main.shopifake-prod.svc.cluster.local:5432/main_api"
+
+  WEBHOOK_CHATBOT_URL: "http://chatbot-service.shopifake-prod.svc.cluster.local:80"
+  IMAGE_SERVICE_URL: "http://image-service.shopifake-prod.svc.cluster.local:80"

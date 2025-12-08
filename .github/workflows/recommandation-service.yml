@@ -6,6 +6,7 @@ on:
       - develop
       - staging
       - main
+      - feat/ci-cd
       - 'feature/**'
     paths:
       - 'backend/recommandation-service/**'
@@ -80,10 +81,8 @@ jobs:
     with:
       service-name: recommandation-service
       k8s-manifests-path: k8s/recommandation-service
-      namespace-staging: recommandation-staging
-      namespace-production: recommandation-prod
-      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || '' }}
-      deployments: recommandation-service,qdrant
+      namespace: shopifake-prod
+      deployments: qdrant-reco,recommandation-service
     secrets:
       KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

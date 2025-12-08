@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-image-secret
+type: Opaque
+stringData:
+  POSTGRES_DB: image_service
+  POSTGRES_USER: user
+  POSTGRES_PASSWORD: pwd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-image-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: local-path
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-image
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-image
+  template:
+    metadata:
+      labels:
+        app: postgres-image
+    spec:
+      containers:
+      - name: postgres-image
+        image: postgres:16-alpine
+        ports:
+        - containerPort: 5432
+          name: postgres
+        envFrom:
+        - secretRef:
+            name: postgres-image-secret
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - pg_isready -U user -d image_service
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - pg_isready -U user -d image_service
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-image-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-image
+spec:
+  selector:
+    app: postgres-image
+  ports:
+  - port: 5432
+    targetPort: 5432
+    name: postgres
+  type: ClusterIP
+

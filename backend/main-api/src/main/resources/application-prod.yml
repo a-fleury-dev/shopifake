@@ -45,6 +45,13 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+      probes:
+        enabled: true  # Active les endpoints /health/liveness et /health/readiness
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
 
 # Image Service Configuration
 image-service:

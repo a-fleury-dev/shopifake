@@ -1,4 +1,4 @@
-name: Auth Service - CI Pipeline
+name: Main API - CI Pipeline
 
 on:
   push:
@@ -9,8 +9,8 @@ on:
       - 'feature/**'
       - feat/ci-cd
     paths:
-      - 'backend/auth-service/**'
-      - '.github/workflows/auth-service-ci.yml'
+      - 'backend/main-api/**'
+      - '.github/workflows/main-api-ci.yml'
       - '.github/workflows/lint.yml'
       - '.github/workflows/test.yml'
       - '.github/workflows/build.yml'
@@ -20,7 +20,7 @@ on:
       - staging
       - main
     paths:
-      - 'backend/auth-service/**'
+      - 'backend/main-api/**'
 
 # Permissions required by the reusable `build.yml` workflow
 permissions:
@@ -31,17 +31,17 @@ jobs:
   lint:
     uses: ./.github/workflows/lint.yml
     with:
-      service-path: backend/auth-service
+      service-path: backend/main-api
 
   tests:
     uses: ./.github/workflows/test.yml
     needs: lint
     with:
-      service-path: backend/auth-service
+      service-path: backend/main-api
 
   build:
     uses: ./.github/workflows/build.yml
     needs: tests
     with:
-      service-path: backend/auth-service
-      service-name: auth-service
+      service-path: backend/main-api
+      service-name: main-api

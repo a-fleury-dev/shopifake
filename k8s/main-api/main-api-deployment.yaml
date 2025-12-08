@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: main-api
+spec:
+  replicas: 1  # Haute disponibilité avec 2 instances
+  selector:
+    matchLabels:
+      app: main-api
+  template:
+    metadata:
+      labels:
+        app: main-api
+    spec:
+      imagePullSecrets:
+      - name: ghcr-secret  # Secret pour GitHub Container Registry
+      containers:
+      - name: main-api
+        image: ghcr.io/a-fleury-dev/main-api:latest
+        ports:
+        - containerPort: 8080  # Port Spring Boot par défaut
+        envFrom:
+        - configMapRef:
+            name: main-api-config  # Variables d'environnement du ConfigMap
+        - secretRef:
+            name: main-api-secrets
+        resources:
+          requests:  # Ressources minimales garanties
+            memory: "512Mi"
+            cpu: "200m"
+          limits:  # Ressources maximales autorisées
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:  # Vérifie si l'application est en vie
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+          initialDelaySeconds: 60  # Temps de démarrage de Spring Boot
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:  # Vérifie si l'application est prête
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:  # Pour les applications à démarrage lent
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30  # 30 * 10s = 5 minutes max pour démarrer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: main-api
+spec:
+  selector:
+    app: main-api  # Connecte ce service aux pods avec le label "app: main-api"
+  ports:
+  - port: 80  # Port exposé par le service
+    targetPort: 8080  # Port du conteneur Spring Boot
+    name: http
+  type: ClusterIP  # Service interne au cluster, accessible via l'Ingress
+

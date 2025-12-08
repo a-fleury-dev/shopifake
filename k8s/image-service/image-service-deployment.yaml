@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-service
+  template:
+    metadata:
+      labels:
+        app: image-service
+    spec:
+      imagePullSecrets:
+      - name: ghcr-secret
+      containers:
+      - name: image-service
+        image: ghcr.io/a-fleury-dev/image-service:latest
+        ports:
+        - containerPort: 8080
+        envFrom:
+          - configMapRef:
+              name: image-service-config
+          - secretRef:
+              name: image-service-secrets
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: image-service
+spec:
+  selector:
+    app: image-service
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+  type: ClusterIP
+
