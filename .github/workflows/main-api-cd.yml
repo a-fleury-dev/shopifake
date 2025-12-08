@@ -28,8 +28,8 @@ jobs:
       - name: Build & Push Docker Image
         uses: docker/build-push-action@v6
         with:
-          context: ./main-api
-          file: ./main-api/Dockerfile
+          context: ./backend/main-api
+          file: Dockerfile
           platforms: linux/amd64
           push: true
           tags: |
