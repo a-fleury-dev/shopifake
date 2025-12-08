@@ -27,7 +27,7 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: ./backend/image-service
-          file: Dockerfile
+          file: ./backend/image-service/Dockerfile
           platforms: linux/amd64
           push: true
           tags: |
