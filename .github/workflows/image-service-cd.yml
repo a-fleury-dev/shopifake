@@ -43,15 +43,61 @@ jobs:
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
             ${{ env.IMAGE_NAME }}:latest
 
-  deploy:
+  set-secrets:
     needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      # ==================================================
+      # CREATE IMAGE SERVICE SECRET
+      # ==================================================
+      - name: Create image-service secret
+        run: |
+          kubectl create secret generic image-service-secrets \
+            --namespace=shopifake-prod \
+            --from-literal=SPRING_DATASOURCE_URL="${{ secrets.IMAGE_DS_URL }}" \
+            --from-literal=SPRING_DATASOURCE_USERNAME="${{ secrets.IMAGE_DS_USER }}" \
+            --from-literal=SPRING_DATASOURCE_PASSWORD="${{ secrets.IMAGE_DS_PASSWORD }}" \
+            --from-literal=MINIO_ACCESS_KEY="${{ secrets.IMAGE_MINIO_ACCESS }}" \
+            --from-literal=MINIO_SECRET_KEY="${{ secrets.IMAGE_MINIO_SECRET }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      # ==================================================
+      # CREATE POSTGRES-IMAGE SECRET
+      # ==================================================
+      - name: Create postgres-image secret
+        run: |
+          kubectl create secret generic postgres-image-secret \
+            --namespace=shopifake-prod \
+            --from-literal=POSTGRES_DB="${{ secrets.IMAGE_PG_DB }}" \
+            --from-literal=POSTGRES_USER="${{ secrets.IMAGE_DS_USER }}" \
+            --from-literal=POSTGRES_PASSWORD="${{ secrets.IMAGE_DS_PASSWORD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      # ==================================================
+      # CREATE MINIO SECRET
+      # ==================================================
+      - name: Create minio secret
+        run: |
+          kubectl create secret generic minio-secret \
+            --namespace=shopifake-prod \
+            --from-literal=MINIO_ENDPOINT="${{ secrets.IMAGE_MINIO_ENDPOINT }}"
+            --from-literal=MINIO_ROOT_USER="${{ secrets.IMAGE_MINIO_ROOT_USER }}" \
+            --from-literal=MINIO_ROOT_PASSWORD="${{ secrets.IMAGE_MINIO_ROOT_PASSWORD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+      
+      
+      
+
+  deploy:
+    needs: set-secrets
     if: github.event_name != 'pull_request'
     uses: ./.github/workflows/deploy-k8s.yml
     with:
       service-name: 'image-service'
       k8s-manifests-path: 'k8s/image-service'
       namespace: 'shopifake-prod'
-      deployments: 'image-service'
+      deployments: 'minio,postgres-image,image-service'
     secrets:
       KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
 

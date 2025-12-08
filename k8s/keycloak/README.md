@@ -43,7 +43,7 @@ kubectl get secret ghcr-secret -n frontend-prod -o yaml | \
   kubectl apply -f -
 
 # 3. Déployer PostgreSQL
-kubectl apply -f postgres-deployment.yaml
+kubectl apply -f postgres-keycloak-deployment.yaml
 
 # 4. Attendre que PostgreSQL soit prêt
 kubectl wait --for=condition=ready pod -l app=postgres-keycloak -n keycloak-prod --timeout=300s

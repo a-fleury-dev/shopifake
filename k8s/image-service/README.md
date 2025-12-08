@@ -41,7 +41,7 @@ kubectl get secret ghcr-secret -n main-api-prod -o yaml | \
     kubectl apply -f -
 
 # 3. Déployer PostgreSQL
-kubectl apply -f postgres-deployment.yaml
+kubectl apply -f postgres-keycloak-deployment.yaml
 
 # 4. Déployer MinIO
 kubectl apply -f minio-deployment.yaml

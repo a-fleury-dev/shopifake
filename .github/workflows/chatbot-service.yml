@@ -86,7 +86,7 @@ jobs:
       service-name: chatbot-service
       k8s-manifests-path: k8s/chatbot-service
       namespace: shopifake-prod
-      deployments: chatbot-service,qdrant
+      deployments: qdrant-chat,chatbot-service
     secrets:
       KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

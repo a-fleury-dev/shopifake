@@ -30,7 +30,7 @@ spec:
       volumes:
       - name: qdrant-data
         persistentVolumeClaim:
-          claimName: qdrant-pvc
+          claimName: qdrant-chat-pvc
 ---
 apiVersion: v1
 kind: Service

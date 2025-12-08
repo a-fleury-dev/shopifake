@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: postgres-secret
+  name: postgres-image-secret
 type: Opaque
 stringData:
   POSTGRES_DB: image_service
@@ -11,7 +11,7 @@ stringData:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: postgres-pvc
+  name: postgres-image-pvc
 spec:
   accessModes:
     - ReadWriteOnce
@@ -23,26 +23,26 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: postgres
+  name: postgres-image
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: postgres
+      app: postgres-image
   template:
     metadata:
       labels:
-        app: postgres
+        app: postgres-image
     spec:
       containers:
-      - name: postgres
+      - name: postgres-image
         image: postgres:16-alpine
         ports:
         - containerPort: 5432
           name: postgres
         envFrom:
         - secretRef:
-            name: postgres-secret
+            name: postgres-image-secret
         volumeMounts:
         - name: postgres-storage
           mountPath: /var/lib/postgresql/data
@@ -76,15 +76,15 @@ spec:
       volumes:
       - name: postgres-storage
         persistentVolumeClaim:
-          claimName: postgres-pvc
+          claimName: postgres-image-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres
+  name: postgres-image
 spec:
   selector:
-    app: postgres
+    app: postgres-image
   ports:
   - port: 5432
     targetPort: 5432

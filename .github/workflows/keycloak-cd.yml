@@ -95,6 +95,6 @@ jobs:
       service-name: 'keycloak'
       k8s-manifests-path: 'k8s/keycloak'
       namespace: 'shopifake-prod'
-      deployments: 'keycloak,postgres-keycloak'
+      deployments: 'postgres-keycloak,keycloak'
     secrets:
       KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}

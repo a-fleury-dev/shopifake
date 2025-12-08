@@ -89,7 +89,7 @@ jobs:
       service-name: 'main-api'
       k8s-manifests-path: 'k8s/main-api'
       namespace: 'shopifake-prod'
-      deployments: 'main-api,postgres-main'
+      deployments: 'postgres-main,main-api'
     secrets:
       KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
 
