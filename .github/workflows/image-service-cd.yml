@@ -44,10 +44,21 @@ jobs:
             ${{ env.IMAGE_NAME }}:latest
 
   set-secrets:
+    name: Set secrets
     needs: build
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 --decode > ~/.kube/config
       # ==================================================
       # CREATE IMAGE SERVICE SECRET
       # ==================================================

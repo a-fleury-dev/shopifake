@@ -28,6 +28,11 @@ spec:
             secretKeyRef:
               name: main-api-secrets
               key: db-password
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: main-api-secrets
+              key: db-username
         resources:
           requests:  # Ressources minimales garanties
             memory: "512Mi"

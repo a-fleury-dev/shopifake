@@ -64,7 +64,8 @@ jobs:
         run: |
           kubectl create secret generic main-api-secrets \
             --namespace=shopifake-prod \
-            --from-literal=db-password="${{ secrets.MAIN_API_DB_PASSWORD }}" \
+            --from-literal=db-username="${{ secrets.MAIN_API_PG_USER }}"
+            --from-literal=db-password="${{ secrets.MAIN_API_PG_PASSWORD }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
       # ==================================================
